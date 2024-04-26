@@ -1,4 +1,4 @@
-import { Address, beginCell, Cell, Slice, toNano } from "ton";
+import { Address, beginCell, Cell, Slice, toNano } from "@ton/core";
 
 import { BunchToken } from '../wrappers/BunchToken';
 import { NetworkProvider } from '@ton/blueprint';
