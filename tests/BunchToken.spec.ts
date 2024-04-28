@@ -1,23 +1,25 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Address, beginCell, Cell, Slice, toNano } from "@ton/core";
+import { Address, beginCell, Cell, Slice, toNano } from "@ton/ton";
+// import BigNumber from 'bignumber.js';
 
 // import { toNano } from '@ton/core';
 import { BunchToken } from '../wrappers/BunchToken';
 import '@ton/test-utils';
-import {jettonMinterInitData} from '../scripts/jetton-minter.deploy'
+// import {jettonMinterInitData} from '../scripts/jetton-minter.deploy'
+import {buildOnchainMetadata} from '../utils/jetton-helpers';
 
 describe('BunchToken', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
     let bunchToken: SandboxContract<BunchToken>;
-    let max_supply = 1000000;
+    let max_supply = 1_000_000n;
     let owner = Address.parse("UQAsB6vBUeSPdQ_XnIrTt8psWXpxdcJmCKVgyuDQYr8B2HQg");
 
     let content =  {
         name: "Bank",
         description: "Bank Token",
         symbol: "BNK",
-        decimals: 0,
+        // decimals: 0,
         image: "https://www.architecton.site/bank.png",
         //image_data:""
      }
@@ -25,9 +27,10 @@ describe('BunchToken', () => {
     beforeEach(async () => {
         blockchain = await Blockchain.create();
 
-        bunchToken = blockchain.openContract(await BunchToken.fromInit(        
-            jettonMinterInitData(owner, content),
-             max_supply));
+        bunchToken = blockchain.openContract(await BunchToken.fromInit(
+            /* owner */        
+            buildOnchainMetadata(content),
+            max_supply));
 
         deployer = await blockchain.treasury('deployer');
 

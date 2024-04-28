@@ -1,12 +1,14 @@
 
 import "@stdlib/ownable";
+import "@stdlib/deploy";
+
 
 message Mint {
     amount: Int;
     receiver: Address;
 }
 
-contract BunchToken with Jetton {
+contract BunchToken with Deployable, Jetton {
     totalSupply: Int as coins;
     owner: Address;
     content: Cell;
@@ -14,13 +16,12 @@ contract BunchToken with Jetton {
 
     max_supply: Int as coins; 
 
-    init( content: Cell, max_supply: Int) {
-        self.totalSupply = 1_000_000;
+    init( content: Cell, totalSupply: Int) {
+        self.totalSupply = 0;
         self.owner = context().sender;
         self.mintable = true;
         self.content = content;
-
-        self.max_supply = max_supply; // Initial Setting for max_supply
+        self.max_supply = totalSupply; // Initial Setting for max_supply
     }
 
     receive(msg: Mint) {
@@ -30,17 +31,7 @@ contract BunchToken with Jetton {
         self.mint(msg.receiver, msg.amount, self.owner); // (to, amount, response_destination)
     }
 
-    receive("Mint: 100") { // Public Minting
-        let ctx: Context = context();
-        require(self.mintable, "Can't Mint Anymore");
-        self.mint(ctx.sender, 100, self.owner);
-    }
 
-    receive("Owner: MintClose") {
-        let ctx: Context = context();
-        require(ctx.sender == self.owner, "Not Owner");
-        self.mintable = false;
-    }
 } 
 
 struct JettonData {

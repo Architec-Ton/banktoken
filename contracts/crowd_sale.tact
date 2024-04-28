@@ -6,7 +6,7 @@ message ReferralAddress {
         referral: Address;
     }
 
-contract crowd_sale_bunch with Deployable,OwnableTransferable {
+contract CrowdSale with  Deployable,OwnableTransferable {
 
     unlockDate: Int as uint32;
     bankersAccounts: map<Address, Int>;
@@ -16,10 +16,10 @@ contract crowd_sale_bunch with Deployable,OwnableTransferable {
     const MinTonForStorage: Int = ton("0.01"); // enough for 1 KB of storage for 2.5 years
 
 
-    init(unlockDate: Int, owner: Address) {
+    init(unlockDate: Int) {
         // self.val = 0;
         self.unlockDate = unlockDate;
-        self.owner = owner;
+        self.owner = context().sender;
         self.totalBanks = 0;    
     }
 
@@ -62,10 +62,10 @@ contract crowd_sale_bunch with Deployable,OwnableTransferable {
         let accAmount:Int  = self.bankersAccounts.get(buyer)!!;
         let banks:Int = 0;
         if self.totalBanks <= 50_000 {
-            banks =  amountTon / 1_000_000_000;
+            banks =  amountTon / 1_000_000; //for test net only. for mainnet set to 1_000_000_000;
         }
         else if self.totalBanks > 50_000 && self.totalBanks <= 500_000 {
-            banks =  amountTon / 1_500_000_000;
+            banks =  amountTon /  1_500_000; //for test net only. for mainnet set to 1_500_000_000;
         }
         else if self.totalBanks > 500_000 && self.totalBanks <= 1_000_000 {
             banks =  amountTon / 2_000_000_000;
@@ -74,3 +74,4 @@ contract crowd_sale_bunch with Deployable,OwnableTransferable {
         self.totalBanks += banks;
     }
 }
+
