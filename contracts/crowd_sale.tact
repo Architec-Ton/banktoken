@@ -36,7 +36,7 @@ contract CrowdSale with  Deployable,OwnableTransferable {
         send(SendParameters{
             to: self.owner,
             bounce: true,
-            value: myBalance() - context().value - self.MinTonForStorage,
+            value: context().value - self.MinTonForStorage,
             mode: SendRemainingValue + SendIgnoreErrors
         });
     }
@@ -49,12 +49,16 @@ contract CrowdSale with  Deployable,OwnableTransferable {
         send(SendParameters{
             to: self.owner,
             bounce: true,
-            value: myBalance() - context().value - self.MinTonForStorage,
+            value:  context().value - self.MinTonForStorage,
             mode: SendRemainingValue + SendIgnoreErrors
         });
     }
     get fun myBanksBalance(): Int {
         return   self.bankersAccounts.get(context().sender)!!; 
+    }
+
+    get fun someoneBanksBalance(addr: Address): Int {
+        return   self.bankersAccounts.get(addr)!!; 
     }
 
      fun sellBank (buyer: Address, amountTon: Int) {
