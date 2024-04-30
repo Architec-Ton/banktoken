@@ -1,0 +1,17 @@
+{
+    "projects": [
+      {
+        "name": "CrowdSale",
+        "path": "./contracts/crowd_sale.tact",
+        "output": "./build/CrowdSale",
+
+        "options": {
+          "debug": true,
+          "masterchain": true,
+          "experimental": {
+            "inline": false
+          }
+        }
+      }
+    ]
+  }

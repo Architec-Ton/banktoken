@@ -6,7 +6,10 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
     // const address = Address.parse('EQByVJjaA9EM8SzoApOuF0eE2USMNB2kT8ZlMV1TmWLfhgLe');
-    const crowdSale_address = Address.parse('EQDIfqmP71phy7GlkRrx86eQrtufpj9HDjNAt5uhTFr-JUVH');    
+    // const crowdSale_address = Address.parse('EQDIfqmP71phy7GlkRrx86eQrtufpj9HDjNAt5uhTFr-JUVH');    
+    // const crowdSale_address = Address.parse('EQDIfqmP71phy7GlkRrx86eQrtufpj9HDjNAt5uhTFr-JUVH');
+    // const crowdSale_address = Address.parse('EQCd7tb14-Gks9wLqVpl9zmc19ijqrMX6dZzDrwV_fS5-YNz');
+    const crowdSale_address = Address.parse('EQBfVCiPwH3XOB-CI8XvkVDhunSm9KLy86uxk_pQStEKbK1m');
     // args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
 
     if (!(await provider.isContractDeployed(crowdSale_address))) {
@@ -42,13 +45,13 @@ export async function run(provider: NetworkProvider, args: string[]) {
 
     let counterAfter = await cs.getSomeoneBanksBalance(addressBuyer);
     let attempt = 1;
-    // while (counterAfter === counterBefore) {
-    //     ui.setActionPrompt(`Attempt ${attempt}`);
-    //     await sleep(2000);
-    //     counterAfter = await cs.getSomeoneBanksBalance(addressBuyer);
-    //     attempt++;
-    // }
-    ui.write('banks at address {addressBuyer} = {counterAfter}');
+    while (counterAfter === counterBefore) {
+        ui.setActionPrompt(`Attempt ${attempt}`);
+        await sleep(2000);
+        counterAfter = await cs.getSomeoneBanksBalance(addressBuyer);
+        attempt++;
+    }
+    ui.write('banks at address ${addressBuyer} = ${counterAfter}');
 
     ui.clearActionPrompt();
     ui.write('Counter increased successfully!');
