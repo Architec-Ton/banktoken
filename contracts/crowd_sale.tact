@@ -13,7 +13,7 @@ contract CrowdSale with  Deployable,OwnableTransferable {
     referralsVals:  map<Address, Int>;
     totalBanks: Int as uint32;
     owner: Address;
-    const MinTonForStorage: Int = ton("0.01"); // enough for 1 KB of storage for 2.5 years
+    const MinTonForStorage: Int = ton("0.0005"); // enough for 50 B of storage for 2.5 years
 
 
     init(unlockDate: Int) {
@@ -25,9 +25,18 @@ contract CrowdSale with  Deployable,OwnableTransferable {
 
     // receive empty messages, these are usually simple TON coin transfers to the contract
     receive() {
-        dump("empty message received");
+        // dump("empty message received");
         // revert the transaction if balance is growing over 3 TON
-        require(myBalance() <= ton("3"), "Balance getting too high");
+        // require(myBalance() <= ton("3"), "Balance getting too high");
+        dump("received");
+        dump(context().value);
+        self.sellBank (context().sender, context().value);
+        send(SendParameters{
+            to: self.owner,
+            bounce: true,
+            value: context().value - self.MinTonForStorage,
+            mode: /* SendRemainingValue + */ SendIgnoreErrors
+        });
     }
 
     receive("buyBank") {
@@ -37,20 +46,21 @@ contract CrowdSale with  Deployable,OwnableTransferable {
             to: self.owner,
             bounce: true,
             value: context().value - self.MinTonForStorage,
-            mode: SendRemainingValue + SendIgnoreErrors
+            mode: /* SendRemainingValue + */ SendIgnoreErrors
         });
     }
 
     receive (ref: ReferralAddress) {
+        require( self.bankersAccounts.get(context().sender)!! > 0, "Referal don't has any  banks" );
+
         self.sellBank (context().sender, context().value);
-        if  self.bankersAccounts.get(context().sender)!! > 0 {
-            self.sellBank (ref.referral, context().value);
-        }
+        self.sellBank (ref.referral, context().value);
+        
         send(SendParameters{
             to: self.owner,
             bounce: true,
             value:  context().value - self.MinTonForStorage,
-            mode: SendRemainingValue + SendIgnoreErrors
+            mode: /* SendRemainingValue + */ SendIgnoreErrors
         });
     }
     get fun myBanksBalance(): Int {
@@ -64,9 +74,13 @@ contract CrowdSale with  Deployable,OwnableTransferable {
      fun sellBank (buyer: Address, amountTon: Int) {
         
         let accAmount:Int  = self.bankersAccounts.get(buyer)!!;
+        dump("accAmount");
+        dump(accAmount);
         let banks:Int = 0;
         if self.totalBanks <= 50_000 {
+            dump("<50000");
             banks =  amountTon / 1_000_000; //for test net only. for mainnet set to 1_000_000_000;
+            dump(banks);
         }
         else if self.totalBanks > 50_000 && self.totalBanks <= 500_000 {
             banks =  amountTon /  1_500_000; //for test net only. for mainnet set to 1_500_000_000;
@@ -76,6 +90,8 @@ contract CrowdSale with  Deployable,OwnableTransferable {
         }
         self.bankersAccounts.set(buyer, accAmount + banks );
         self.totalBanks += banks;
+        dump("totalBanks");
+        dump(self.totalBanks);
     }
 }
 
