@@ -18,6 +18,8 @@ contract CrowdSalev2 with  Deployable,OwnableTransferable {
     bankersAccounts: map<Address, BankDetail>;
     //referralsVals:  map<Address, Int>;
     totalBanks: Int;
+    totalBanksOfSec: Int;
+    updateDate: Int as uint32;
     owner: Address;
     const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
 
@@ -27,6 +29,8 @@ contract CrowdSalev2 with  Deployable,OwnableTransferable {
         self.unlockDate = unlockDate;
         self.owner = context().sender;
         self.totalBanks = 0;    
+        self.totalBanksOfSec = 0;  
+        self.updateDate = 0;
     }
 
     // receive empty messages, these are usually simple TON coin transfers to the contract
@@ -72,6 +76,14 @@ contract CrowdSalev2 with  Deployable,OwnableTransferable {
             let detail: BankDetail = check!!;
             return detail.banks;
         }
+    }
+
+    get fun TotalBanks(): Int {
+        return self.totalBanks;
+    }
+
+    get fun TotalCoins(): Int {
+        return self.totalBanksOfSec;
     }
 
 
@@ -143,8 +155,12 @@ contract CrowdSalev2 with  Deployable,OwnableTransferable {
 
 
         });
+
+        self.totalBanksOfSec+= ((currentDate - self.updateDate) * self.totalBanks);
         // Increase banks
         self.totalBanks += bankCount;
+        self.updateDate = currentDate;
+        
         
         // Push notification (we can catch in future)
         emit( beginCell()
