@@ -13,10 +13,17 @@ export async function run(provider: NetworkProvider) {
         {
             $$type: 'Deploy',
             queryId: 0n,
-        }
+        },
     );
 
     await provider.waitForDeploy(crowdSalev2.address);
 
-    console.log('ID', await crowdSalev2.getId());
+    console.log('Address:', crowdSalev2.address);
+
+    console.log('getBanker', await crowdSalev2.getBanker(provider.sender().address));
+    console.log('getBanks', await crowdSalev2.getBanks(provider.sender().address));
+    console.log('getCoins', await crowdSalev2.getCoins(provider.sender().address));
+    console.log('getOwner', await crowdSalev2.getOwner());
+
+    console.log('getAccounts', await crowdSalev2.getAccounts());
 }
