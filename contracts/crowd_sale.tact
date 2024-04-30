@@ -51,7 +51,7 @@ contract CrowdSale with  Deployable,OwnableTransferable {
     }
 
     receive (ref: ReferralAddress) {
-        require( self.bankersAccounts.get(context().sender)!! > 0, "Referal don't has any  banks" );
+        require( self.bankersAccounts.get(context().sender) != null, "Referal don't has any  banks" );
 
         self.sellBank (context().sender, context().value);
         self.sellBank (ref.referral, context().value);
@@ -63,15 +63,15 @@ contract CrowdSale with  Deployable,OwnableTransferable {
             mode: /* SendRemainingValue + */ SendIgnoreErrors
         });
     }
-    get fun myBanksBalance(): Int {
-        return   self.bankersAccounts.get(context().sender)!!; 
+    get fun myBanksBalance(): Int? {
+        return   self.bankersAccounts.get(context().sender); 
     }
 
-    get fun someoneBanksBalance(addr: Address): Int {
-        return   self.bankersAccounts.get(addr)!!; 
+    get fun someoneBanksBalance(addr: Address): Int? {
+        return   self.bankersAccounts.get(addr); 
     }
 
-     fun sellBank (buyer: Address, amountTon: Int) {
+    fun sellBank (buyer: Address, amountTon: Int) {
         
         let accAmount:Int  = self.bankersAccounts.get(buyer)!!;
         dump("accAmount");
