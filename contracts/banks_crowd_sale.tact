@@ -9,6 +9,7 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
 
     bankersAccounts: map<Address, Int as uint32>;
     totalBanks: Int as uint32;
+    totalBankers: Int as uint32;
     saleEnabled: Bool;
     owner: Address;
     
@@ -17,6 +18,7 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
     init() {
         self.saleEnabled = true;
         self.totalBanks = 0;
+        self.totalBankers = 0;
         self.owner = context().sender;
     }
 
@@ -30,6 +32,10 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
     get fun Bankers(): map<Address, Int as uint32> {
         // require(sender() == self.owner, "Access denied");
         return self.bankersAccounts; 
+    }
+
+    get fun TotalBankers(): Int {
+        return self.totalBankers;
     }
 
         // receive empty messages, these are usually simple TON coin transfers to the contract
@@ -66,10 +72,14 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
     }
 
     fun sellBank(buyer: Address, bankCount: Int) {
+        require(bankCount > 0, "Bank's must be not zero");
         let banks: Int? = self.bankersAccounts.get(buyer);
         let currentBanks: Int = (banks == null)? 0: banks!!;
         // Update record
         self.bankersAccounts.set(buyer, currentBanks + bankCount);
+        if (currentBanks == 0){
+            self.totalBankers+=1;
+        }
 
         // Push notification (we can catch in future)
         emit( beginCell()
