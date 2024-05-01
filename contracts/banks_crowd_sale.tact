@@ -1,0 +1,130 @@
+import "@stdlib/deploy";
+import "@stdlib/ownable";
+
+message ReferralAddress {
+        referral: Address;
+}
+
+contract BanksCrowdSale with Deployable, OwnableTransferable {
+
+    bankersAccounts: map<Address, Int as uint32>;
+    totalBanks: Int as uint32;
+    saleEnabled: Bool;
+    owner: Address;
+    
+    const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
+
+    init() {
+        self.saleEnabled = true;
+        self.totalBanks = 0;
+        self.owner = context().sender;
+    }
+
+     get fun Banks(addr: Address): Int {
+        let banks: Int? = self.bankersAccounts.get(addr);
+        if (banks == null){
+            return 0;
+        }else{
+            return banks!!;
+        }
+    }
+    get fun TotalBanks(): Int {
+        return self.totalBanks;
+    }
+
+    get fun Bankers(): map<Address, Int as uint32> {
+        // require(sender() == self.owner, "Access denied");
+        return self.bankersAccounts; 
+    }
+
+        // receive empty messages, these are usually simple TON coin transfers to the contract
+    receive() {
+
+        // Any can buy banks directly instead owner (owner can buy from buyBank)
+        if (sender() != self.owner){
+            self.payBank(context().sender, context().value);
+        }
+        // Owner can charge contract balance
+    }
+
+    receive("buyBank") {
+        self.payBank(context().sender, context().value);
+    }
+
+    receive("stopSale") {
+        require(sender() == self.owner, "Access denied");
+        self.saleEnabled = false;
+    }
+
+    receive("resumeSale") {
+        require(sender() == self.owner, "Access denied");
+         self.saleEnabled = true;
+    }
+
+    receive(ref: ReferralAddress) {
+        // Check if the sender has already bought banks; fail if not
+        //let referrerBanks: Int as uint32? = self.bankersAccounts.get(ref.referral);
+        //require(referrerDetails.banks > 0, "Referral doesn't have any banks");
+        //let senderBanks: Int as uint32? = self.bankersAccounts.get(context().sender);
+        let BanksToBuy: Int = self.payBank(context().sender, context().value);
+
+        self.sellBank (ref.referral, BanksToBuy);
+        // Check if the referrer already has a record in the bankersAccounts
+        
+        // If the referrer is getting a referral for the first time (i.e., purchaseDate is 0), award extra banks
+        // if (referrerDetails.purchaseDate == 0 && referrerDetails.banks == 0) {
+        //     let extraBanks: Int = banksToBuy / 10; // For example, give 10% of the bought banks as a bonus
+        //     self.sellBank(ref.referral, extraBanks);
+        // }
+    }
+
+    fun sellBank(buyer: Address, bankCount: Int) {
+        let banks: Int? = self.bankersAccounts.get(buyer);
+        let currentBanks: Int = (banks == null)? 0: banks!!;
+        // Update record
+        self.bankersAccounts.set(buyer, currentBanks + bankCount);
+
+        // Push notification (we can catch in future)
+        emit( beginCell()
+                .storeAddress(buyer)
+                .storeUint(currentBanks + bankCount, 32)
+                .endCell()
+         );
+    }
+
+    fun payBank(buyer: Address, tons: Int): Int {
+        require(self.saleEnabled, "Sale stopped");
+
+        let bankCost: Int = ton("0.1"); //Bank cost in nanoTon
+
+        if (self.totalBanks > 50_000) {bankCost = ton("0.15");}
+        if (self.totalBanks > 500_000) {bankCost = ton("0.2");}
+        if (self.totalBanks > 1_000_000) {bankCost = ton("3");}
+
+        let banksToBuy: Int = tons / bankCost; // Calculate how many banks can be bought with the received TONs
+        let usedTon: Int = banksToBuy * bankCost; // Calculate how much TON was actually used to buy banks
+        let refundTon: Int = tons - usedTon; // Calculate the leftover TON to refund
+        self.sellBank(buyer, banksToBuy); // Use the modified sellBank function to update banks
+        if (refundTon > ton("0.005")) {
+            send(SendParameters{
+                to: buyer,
+                bounce: true,
+                value: refundTon,
+                mode: SendIgnoreErrors
+            }); // Refund any unused TON
+        }
+
+
+        // We send ton if balance more then 0.6 ton
+        if ( (myBalance() - self.MinTonForStorage) > ton("0.1") ){
+            send(SendParameters{
+                to: self.owner,
+                bounce: true,
+                value: myBalance() - self.MinTonForStorage,
+                mode: SendIgnoreErrors
+            }); // Send all ton minus Min for storage
+        }
+        return banksToBuy;
+    }
+
+}

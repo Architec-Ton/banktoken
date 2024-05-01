@@ -4,7 +4,7 @@ import "@stdlib/ownable";
 
 message ReferralAddress {
         referral: Address;
-    }
+}
 
 struct BankDetail{
     banks: Int as uint32;  //Count BANKS
