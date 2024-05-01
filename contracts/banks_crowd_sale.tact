@@ -43,13 +43,13 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
 
         // Any can buy banks directly instead owner (owner can buy from buyBank)
         if (sender() != self.owner){
-            self.payBank(context().sender, context().value);
+            self.payBank(sender(), context().value);
         }
         // Owner can charge contract balance
     }
 
     receive("buyBank") {
-        self.payBank(context().sender, context().value);
+        self.payBank(sender(), context().value);
     }
 
     receive("stopSale") {
@@ -67,7 +67,7 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
         let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
         require(referrerBanks != null && referrerBanks!! > 0, "Referral doesn't have any banks");
 
-        let BanksToBuy: Int = self.payBank(context().sender, context().value);
+        let BanksToBuy: Int = self.payBank(sender(), context().value);
         self.sellBank (ref.referral, BanksToBuy);
     }
 
@@ -80,6 +80,7 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
         if (currentBanks == 0){
             self.totalBankers+=1;
         }
+        self.totalBanks+=bankCount;
 
         // Push notification (we can catch in future)
         emit( beginCell()
@@ -98,10 +99,10 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
         if (self.totalBanks > 50_000) {bankCost = ton("0.15");}
         if (self.totalBanks > 500_000) {bankCost = ton("0.2");}
         if (self.totalBanks > 1_000_000) {bankCost = ton("3");}
-
-        let banksToBuy: Int = tons / bankCost; // Calculate how many banks can be bought with the received TONs
+        let amountTon : Int = tons;
+        let banksToBuy: Int = amountTon / bankCost; // Calculate how many banks can be bought with the received TONs
         let usedTon: Int = banksToBuy * bankCost; // Calculate how much TON was actually used to buy banks
-        let refundTon: Int = tons - usedTon; // Calculate the leftover TON to refund
+        let refundTon: Int = amountTon - usedTon; // Calculate the leftover TON to refund
         self.sellBank(buyer, banksToBuy); // Use the modified sellBank function to update banks
         if (refundTon > ton("0.005")) {
             send(SendParameters{
