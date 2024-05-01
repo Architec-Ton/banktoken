@@ -20,13 +20,8 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
         self.owner = context().sender;
     }
 
-     get fun Banks(addr: Address): Int {
-        let banks: Int? = self.bankersAccounts.get(addr);
-        if (banks == null){
-            return 0;
-        }else{
-            return banks!!;
-        }
+     get fun Banks(addr: Address): Int? {
+        return self.bankersAccounts.get(addr);
     }
     get fun TotalBanks(): Int {
         return self.totalBanks;
@@ -86,6 +81,7 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
 
     fun payBank(buyer: Address, tons: Int): Int {
         require(self.saleEnabled, "Sale stopped");
+        require(self.totalBanks <= 1_000_000, "Sale ended");
 
         let bankCost: Int = ton("0.1"); //Bank cost in nanoTon
 
