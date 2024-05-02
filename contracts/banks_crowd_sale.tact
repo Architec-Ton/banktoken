@@ -22,8 +22,13 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
         self.owner = context().sender;
     }
 
-     get fun Banks(addr: Address): Int? {
-        return self.bankersAccounts.get(addr);
+     get fun Banks(addr: Address): Int {
+        let banks: Int? = self.bankersAccounts.get(addr);
+        if (banks == null){
+            return 0;
+        }else{
+            return banks!!;
+        }
     }
     get fun TotalBanks(): Int {
         return self.totalBanks;
@@ -64,6 +69,7 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
 
     receive(ref: ReferralAddress) {
         // Check if the sender has already bought banks; fail if not
+        require(sender() != ref.referral, "Referral wrong");
         let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
         require(referrerBanks != null && referrerBanks!! > 0, "Referral doesn't have any banks");
 
