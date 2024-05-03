@@ -100,11 +100,10 @@ contract BanksCrowdSale with Deployable, OwnableTransferable {
         require(self.saleEnabled, "Sale stopped");
         require(self.totalBanks <= 1_000_000, "Sale ended");
 
-        let bankCost: Int = ton("0.1"); //Bank cost in nanoTon
+        let bankCost: Int = ton("1"); //Bank cost in nanoTon
 
-        if (self.totalBanks > 50_000) {bankCost = ton("0.15");}
-        if (self.totalBanks > 500_000) {bankCost = ton("0.2");}
-        if (self.totalBanks > 1_000_000) {bankCost = ton("3");}
+        if (self.totalBanks > 50_000) {bankCost = ton("1.5");}
+        if (self.totalBanks > 500_000) {bankCost = ton("2");}
         let amountTon : Int = tons;
         let banksToBuy: Int = amountTon / bankCost; // Calculate how many banks can be bought with the received TONs
         let usedTon: Int = banksToBuy * bankCost; // Calculate how much TON was actually used to buy banks
