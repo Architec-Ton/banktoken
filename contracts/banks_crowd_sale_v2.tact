@@ -19,7 +19,15 @@ message ChangePrice3stage{
 
 message Bonus {
     to: Address;
-    amount: Int;
+    amount: Int as uint32;
+}
+
+message SetManager {
+    to: Address;
+}
+
+message SetBankOffset {
+    offset: Int as uint32;
 }
 
 contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
@@ -29,9 +37,11 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     totalBankers: Int as uint32;
     saleEnabled: Bool;
     owner: Address;
-    price1stage: Int;
-    price2stage: Int;
-    price3stage: Int;
+    manager: Address;
+    price1stage: Int as uint32;
+    price2stage: Int as uint32;
+    price3stage: Int as uint32;
+    totalBanksOffset: Int as uint32;
 
     const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
 
@@ -39,7 +49,9 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         self.saleEnabled = true;
         self.totalBanks = 0;
         self.totalBankers = 0;
+        self.totalBanksOffset = 0;
         self.owner = context().sender;
+        self.manager = context().sender;
         self.price1stage = ton("1");
         self.price2stage = ton("1.5");
         self.price3stage = ton("2");
@@ -54,7 +66,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         }
     }
     get fun TotalBanks(): Int {
-        return self.totalBanks;
+        return self.totalBanks + self.totalBanksOffset;
     }
 
     get fun Bankers(): map<Address, Int as uint32> {
@@ -94,10 +106,20 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         // Check if the sender has already bought banks; fail if not
         require(sender() != ref.referral, "Referral wrong");
         let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
-        require(referrerBanks != null && referrerBanks!! > 0, "Referral doesn't have any banks");
+        require(referrerBanks != null , "Referral doesn't have any banks"); //&& referrerBanks!! > 0
 
         let BanksToBuy: Int = self.payBank(sender(), context().value);
         self.sellBank (ref.referral, BanksToBuy);
+    }
+
+    receive(manager: SetManager ) {
+        require(sender() == self.owner, "Access denied");
+        self.manager = manager.to;
+    }
+    
+    receive(bankOffset: SetBankOffset ) {
+        require(sender() == self.owner, "Access denied");
+        self.totalBanksOffset = bankOffset.offset;
     }
 
     receive(newPrice: ChangePrice1stage ) {
@@ -115,7 +137,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
          self.price3stage = newPrice.price;
     }
     receive(bonus: Bonus ) {
-        require(sender() == self.owner, "Access denied");
+        require(sender() == self.manager, "Access denied");
          self.sellBank(bonus.to, bonus.amount);
     }
 
@@ -143,8 +165,8 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         require(self.totalBanks <= 1_000_000, "Sale ended");
 
         let bankPrice: Int = self.price1stage; //Bank cost in nanoTon
-        if (self.totalBanks > 50_000) {bankPrice = self.price2stage;}
-        if (self.totalBanks > 500_000) {bankPrice = self.price3stage;}
+        if (self.totalBanks + self.totalBanksOffset > 50_000) {bankPrice = self.price2stage;}
+        if (self.totalBanks + self.totalBanksOffset > 500_000) {bankPrice = self.price3stage;}
         let amountTon : Int = tons;
         let banksToBuy: Int = amountTon / bankPrice; // Calculate how many banks can be bought with the received TONs
         let usedTon: Int = banksToBuy * bankPrice; // Calculate how much TON was actually used to buy banks
