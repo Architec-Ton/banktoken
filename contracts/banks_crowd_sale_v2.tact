@@ -105,8 +105,8 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     receive(ref: ReferralAddress) {
         // Check if the sender has already bought banks; fail if not
         require(sender() != ref.referral, "Referral wrong");
-        let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
-        require(referrerBanks != null , "Referral doesn't have any banks"); //&& referrerBanks!! > 0
+        // let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
+        // require(referrerBanks != null , "Referral doesn't have any banks"); //&& referrerBanks!! > 0
 
         let BanksToBuy: Int = self.payBank(sender(), context().value);
         self.sellBank (ref.referral, BanksToBuy);
