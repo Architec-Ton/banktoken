@@ -30,6 +30,10 @@ message SetBankOffset {
     offset: Int as uint32;
 }
 
+message SetBankersOffset {
+    offset: Int as uint32;
+}
+
 contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
 
     bankersAccounts: map<Address, Int as uint32>;
@@ -42,6 +46,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     price2stage: Int as uint32;
     price3stage: Int as uint32;
     totalBanksOffset: Int as uint32;
+    totalBankersOffset: Int as uint32;
 
     const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
 
@@ -50,6 +55,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         self.totalBanks = 0;
         self.totalBankers = 0;
         self.totalBanksOffset = 0;
+        self.totalBankersOffset = 0;
         self.owner = context().sender;
         self.manager = context().sender;
         self.price1stage = ton("1");
@@ -75,7 +81,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     }
 
     get fun TotalBankers(): Int {
-        return self.totalBankers;
+        return self.totalBankers + self.totalBankersOffset;
     }
 
         // receive empty messages, these are usually simple TON coin transfers to the contract
@@ -122,6 +128,11 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         self.totalBanksOffset = bankOffset.offset;
     }
 
+    receive(bankerOffset: SetBankersOffset ) {
+        require(sender() == self.owner, "Access denied");
+        self.totalBankersOffset = bankerOffset.offset;
+    }
+
     receive(newPrice: ChangePrice1stage ) {
         require(sender() == self.owner, "Access denied");
          self.price1stage = newPrice.price;
@@ -137,7 +148,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
          self.price3stage = newPrice.price;
     }
     receive(bonus: Bonus ) {
-        require(sender() == self.manager, "Access denied");
+        require( (sender() == self.manager) || (sender() == self.owner), "Access denied");
          self.sellBank(bonus.to, bonus.amount);
     }
 
@@ -162,7 +173,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
 
     fun payBank(buyer: Address, tons: Int): Int {
         require(self.saleEnabled, "Sale stopped");
-        require(self.totalBanks <= 1_000_000, "Sale ended");
+        require( (self.totalBanks + self.totalBanksOffset) <= 1_000_000, "Sale ended");
 
         let bankPrice: Int = self.price1stage; //Bank cost in nanoTon
         if (self.totalBanks + self.totalBanksOffset > 50_000) {bankPrice = self.price2stage;}
