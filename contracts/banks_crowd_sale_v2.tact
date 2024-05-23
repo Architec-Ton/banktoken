@@ -22,6 +22,11 @@ message Bonus {
     amount: Int as uint32;
 }
 
+message BonusOk {
+    to: Address;
+    amount: Int as uint32;
+}
+
 message SetManager {
     to: Address;
 }
@@ -45,6 +50,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     price1stage: Int as uint32;
     price2stage: Int as uint32;
     price3stage: Int as uint32;
+    price4stage: Int as uint32;
     totalBanksOffset: Int as uint32;
     totalBankersOffset: Int as uint32;
 
@@ -61,6 +67,7 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         self.price1stage = ton("1");
         self.price2stage = ton("1.5");
         self.price3stage = ton("2");
+        self.price4stage = ton("4");
     }
 
     get fun Banks(addr: Address): Int {
@@ -78,6 +85,10 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     get fun Bankers(): map<Address, Int as uint32> {
         // require(sender() == self.owner, "Access denied");
         return self.bankersAccounts; 
+    }
+
+    get fun Manager(): Address{
+        return self.manager; 
     }
 
     get fun TotalBankers(): Int {
@@ -129,18 +140,18 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     }
 
     receive(bankerOffset: SetBankersOffset ) {
-        require(sender() == self.owner, "Access denied");
+        self.requireOwner();
         self.totalBankersOffset = bankerOffset.offset;
     }
 
     receive(newPrice: ChangePrice1stage ) {
-        require(sender() == self.owner, "Access denied");
-         self.price1stage = newPrice.price;
+        self.requireOwner();
+        self.price1stage = newPrice.price;
     }
 
     receive(newPrice: ChangePrice2stage ) {
-        require(sender() == self.owner, "Access denied");
-         self.price2stage = newPrice.price;
+        self.requireOwner();
+        self.price2stage = newPrice.price;
     }
 
     receive(newPrice: ChangePrice3stage ) {
@@ -148,8 +159,8 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
          self.price3stage = newPrice.price;
     }
     receive(bonus: Bonus ) {
-        require( (sender() == self.manager) || (sender() == self.owner), "Access denied");
-         self.sellBank(bonus.to, bonus.amount);
+        require(sender() == self.manager, "Access denied");
+        self.sellBank(bonus.to, bonus.amount);        
     }
 
     fun sellBank(buyer: Address, bankCount: Int) {
@@ -169,15 +180,17 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
                 .storeUint(currentBanks + bankCount, 32)
                 .endCell()
          );
+         self.reply(BonusOk{ to: buyer, amount: currentBanks + bankCount }.toCell());
     }
 
     fun payBank(buyer: Address, tons: Int): Int {
         require(self.saleEnabled, "Sale stopped");
-        require( (self.totalBanks + self.totalBanksOffset) <= 1_000_000, "Sale ended");
+        require( (self.totalBanks + self.totalBanksOffset) <= 2_800_000, "Sale ended");
 
         let bankPrice: Int = self.price1stage; //Bank cost in nanoTon
         if (self.totalBanks + self.totalBanksOffset > 50_000) {bankPrice = self.price2stage;}
         if (self.totalBanks + self.totalBanksOffset > 500_000) {bankPrice = self.price3stage;}
+         if (self.totalBanks + self.totalBanksOffset > 1_000_000) {bankPrice = self.price4stage;}
         let amountTon : Int = tons;
         let banksToBuy: Int = amountTon / bankPrice; // Calculate how many banks can be bought with the received TONs
         let usedTon: Int = banksToBuy * bankPrice; // Calculate how much TON was actually used to buy banks
