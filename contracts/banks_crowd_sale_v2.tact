@@ -160,10 +160,11 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
     }
     receive(bonus: Bonus ) {
         require(sender() == self.manager, "Access denied");
-        self.sellBank(bonus.to, bonus.amount);        
+        let totalBanks: Int = self.sellBank(bonus.to, bonus.amount);  
+        self.reply(BonusOk{ to: bonus.to, amount: totalBanks }.toCell());      
     }
 
-    fun sellBank(buyer: Address, bankCount: Int) {
+    fun sellBank(buyer: Address, bankCount: Int): Int {
         require(bankCount > 0, "Bank's must be not zero");
         let banks: Int? = self.bankersAccounts.get(buyer);
         let currentBanks: Int = (banks == null)? 0: banks!!;
@@ -180,7 +181,9 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
                 .storeUint(currentBanks + bankCount, 32)
                 .endCell()
          );
-         self.reply(BonusOk{ to: buyer, amount: currentBanks + bankCount }.toCell());
+
+         return currentBanks + bankCount;
+         
     }
 
     fun payBank(buyer: Address, tons: Int): Int {
