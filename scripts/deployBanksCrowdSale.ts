@@ -12,8 +12,8 @@ export async function run(provider: NetworkProvider) {
         },
         {
             $$type: 'Deploy',
-            queryId: 0n,
-        }
+            query_id: 0n,
+        },
     );
 
     await provider.waitForDeploy(banksCrowdSale.address);
@@ -27,8 +27,8 @@ export async function run(provider: NetworkProvider) {
         },
         {
             $$type: 'ChangeOwner',
-            queryId: 0n,
-            newOwner: newOwner
-        }
+            query_id: 0n,
+            newOwner: newOwner,
+        },
     );
 }

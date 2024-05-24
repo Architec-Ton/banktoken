@@ -1,4 +1,4 @@
-# bunchtoken
+# banktoken
 
 ## Project structure
 

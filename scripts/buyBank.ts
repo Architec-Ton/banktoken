@@ -6,7 +6,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
     // const address = Address.parse('EQByVJjaA9EM8SzoApOuF0eE2USMNB2kT8ZlMV1TmWLfhgLe');
-    // const crowdSale_address = Address.parse('EQDIfqmP71phy7GlkRrx86eQrtufpj9HDjNAt5uhTFr-JUVH');    
+    // const crowdSale_address = Address.parse('EQDIfqmP71phy7GlkRrx86eQrtufpj9HDjNAt5uhTFr-JUVH');
     // const crowdSale_address = Address.parse('EQDIfqmP71phy7GlkRrx86eQrtufpj9HDjNAt5uhTFr-JUVH');
     // const crowdSale_address = Address.parse('EQCd7tb14-Gks9wLqVpl9zmc19ijqrMX6dZzDrwV_fS5-YNz');
     const crowdSale_address = Address.parse('EQBfVCiPwH3XOB-CI8XvkVDhunSm9KLy86uxk_pQStEKbK1m');
@@ -18,14 +18,14 @@ export async function run(provider: NetworkProvider, args: string[]) {
     }
     // const addressBuyer = Address.parse('EQDOQbS74Sn-sGojYfUK6Uknlg8t1CdNjG-5VJx5VIO2zNms');
     const addressBuyer = Address.parse('0QCtwujhh-vTomKvurFgHifJOb4mK-vHnBjELhkhfLVvJ0Tz');
-        // args.length > 0 ? args[0] : await ui.input('Buyer address'));
+    // args.length > 0 ? args[0] : await ui.input('Buyer address'));
 
     const cs = provider.open(CrowdSale.fromAddress(crowdSale_address));
 
-    const counterBefore =await cs.getSomeoneBanksBalance(addressBuyer);
+    const counterBefore = await cs.getSomeoneBanksBalance(addressBuyer);
     ui.write('banks at address: ');
-    console.log ( addressBuyer);
-    console.log ( counterBefore);
+    console.log(addressBuyer);
+    console.log(counterBefore);
 
     await cs.send(
         provider.sender(),
@@ -35,13 +35,12 @@ export async function run(provider: NetworkProvider, args: string[]) {
         {
             $$type: 'ReferralAddress',
             referral: Address.parse('EQDOQbS74Sn-sGojYfUK6Uknlg8t1CdNjG-5VJx5VIO2zNms'),
-            // queryId: 0n,
+            // query_id: 0n,
             // amount: 1n,
-        }
+        },
     );
 
     ui.write('Waiting for counter to increase...');
-
 
     let counterAfter = await cs.getSomeoneBanksBalance(addressBuyer);
     let attempt = 1;
