@@ -1,27 +1,15 @@
 import "@stdlib/deploy";
+import "@stdlib/ownable";
+import "./bunch_token.tact";
 import "./imports/stdlib.fc";
 
 
 @name(parse_addr)
 native parse_addr(addr: Slice): Address?;
 
-message(0xf8a7ea5) TokenTransfer {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    destination: Address;
-    response_destination: Address;
-    custom_payload: Cell?;
-    forward_ton_amount: Int as coins;
-    forward_payload: Slice as remaining; // Comment Text message when Transfer the jetton
-}
-
-
-message(0x7362d09c) TokenNotification {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    from: Address;
-    forward_payload: Slice as remaining; // Comment Text message when Transfer the jetton 
-}
+// message SetOwnerJettonWallet{
+//     wallet: Address;
+// }
 
 message ReferralAddress {
     referral: Address;
@@ -36,6 +24,10 @@ message ChangePrice2stage{
 }
 
 message ChangePrice3stage{
+    price:Int;
+}
+
+message ChangePriceJettonsforTON{
     price:Int;
 }
 
@@ -56,28 +48,34 @@ message SetBankersOffset {
     offset: Int as uint32;
 }
 
-contract CrowdSaleJettons with Deployable {
+contract CrowdSaleJettons  with Deployable, OwnableTransferable {
+
     bankersAccounts: map<Address, Int as uint32>;
     totalBanks: Int as uint32;
     totalBankers: Int as uint32;
     saleEnabled: Bool;
     owner: Address;
+    jettonAddress: Address;
     manager: Address;
+    priceJetonsForTON: Int as uint32;
     price1stage: Int as uint32;
     price2stage: Int as uint32;
     price3stage: Int as uint32;
     totalBanksOffset: Int as uint32;
     totalBankersOffset: Int as uint32;
- const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
 
-    init() {
+    const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
+
+    init(jetton: Address) {
         self.saleEnabled = true;
         self.totalBanks = 0;
         self.totalBankers = 0;
         self.totalBanksOffset = 0;
         self.totalBankersOffset = 0;
         self.owner = context().sender;
+        self.jettonAddress = jetton;
         self.manager = context().sender;
+        self.priceJetonsForTON = ton("6.3");
         self.price1stage = ton("1");
         self.price2stage = ton("1.5");
         self.price3stage = ton("2");
@@ -104,17 +102,19 @@ contract CrowdSaleJettons with Deployable {
         return self.totalBankers + self.totalBankersOffset;
     }
 
-        // receive empty messages, these are usually simple TON coin transfers to the contract
+    // receive empty messages, these are usually simple TON coin transfers to the contract
     receive() {
 
         // Any can buy banks directly instead owner (owner can buy from buyBank)
-        // if (sender() != self.owner){
-        //     self.payBank(sender(), context().value);
-        // }
+        if (sender() != self.owner){
+            self.payBank(sender(), context().value * self.priceJetonsForTON);
+        }
         // // Owner can charge contract balance
     }
 
     receive(msg: TokenNotification) {
+        require (msg.from == self.jettonAddress, "Wrong jetton"); 
+        // а что делать, если он реально неправильный?
         let banksToBuy: Integer = self.payBank(msg.from, msg.amount);
         let refs: Address? = parse_addr(msg.forward_payload);
         if refs != null {
@@ -123,6 +123,14 @@ contract CrowdSaleJettons with Deployable {
             self.sellBank (refs!!, BanksToBuy);
         }
     }
+    //TODO - changeOwner
+    // receive(msg: SetOwnerJettonWallet){
+    //     let ctx: Context = context();
+    //     require(ctx.sender == self.owner, "The sender is not the owner!");
+    //     require(self.isSetOwnerJettonWallet == false, "The jetton wallet has been set!");
+    //     self.OwnerJettonWallet = msg.wallet;
+    //     self.isSetOwnerJettonWallet = true;
+    // }
 
     receive("stopSale") {
         require(sender() == self.owner, "Access denied");
@@ -133,16 +141,6 @@ contract CrowdSaleJettons with Deployable {
         require(sender() == self.owner, "Access denied");
          self.saleEnabled = true;
     }
-
-    // receive(ref: ReferralAddress) {
-    //     // Check if the sender has already bought banks; fail if not
-    //     require(sender() != ref.referral, "Referral wrong");
-    //     // let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
-    //     // require(referrerBanks != null , "Referral doesn't have any banks"); //&& referrerBanks!! > 0
-
-    //     let BanksToBuy: Int = self.payBank(sender(), context().value);
-    //     self.sellBank (ref.referral, BanksToBuy);
-    // }
 
     receive(manager: SetManager ) {
         require(sender() == self.owner, "Access denied");
@@ -173,6 +171,11 @@ contract CrowdSaleJettons with Deployable {
         require(sender() == self.owner, "Access denied");
          self.price3stage = newPrice.price;
     }
+
+    receive(newPrice: ChangePriceJettonsforTON ) {
+        require(sender() == self.owner, "Access denied");
+         self.priceJetonsForTON = newPrice.price;
+    }
     receive(bonus: Bonus ) {
         require( (sender() == self.manager) || (sender() == self.owner), "Access denied");
          self.sellBank(bonus.to, bonus.amount);
@@ -197,17 +200,17 @@ contract CrowdSaleJettons with Deployable {
          );
     }
 
-    fun payBank(buyer: Address, tons: Int): Int {
+    fun payBank(buyer: Address, jettons: Int): Int {
         require(self.saleEnabled, "Sale stopped");
         require( (self.totalBanks + self.totalBanksOffset) <= 1_000_000, "Sale ended");
 
         let bankPrice: Int = self.price1stage; //Bank cost in nanoTon
         if (self.totalBanks + self.totalBanksOffset > 50_000) {bankPrice = self.price2stage;}
         if (self.totalBanks + self.totalBanksOffset > 500_000) {bankPrice = self.price3stage;}
-        let amountTon : Int = tons;
-        let banksToBuy: Int = amountTon / bankPrice; // Calculate how many banks can be bought with the received TONs
+        // let amountJetTon : Int = jettons;
+        let banksToBuy: Int = jettons / bankPrice; // Calculate how many banks can be bought with the received TONs
         let usedTon: Int = banksToBuy * bankPrice; // Calculate how much TON was actually used to buy banks
-        let refundTon: Int = amountTon - usedTon; // Calculate the leftover TON to refund
+        let refundTon: Int = jettons - usedTon; // Calculate the leftover TON to refund
         self.sellBank(buyer, banksToBuy); // Use the modified sellBank function to update banks
         if (refundTon > ton("0.005")) {
             send(SendParameters{
@@ -218,15 +221,32 @@ contract CrowdSaleJettons with Deployable {
             }); // Refund any unused TON
         }
 
-
         // We send ton if balance more then 0.6 ton
         if ( (myBalance() - self.MinTonForStorage) > ton("0.1") ){
+            // send(SendParameters{
+            //     to: self.owner,
+            //     bounce: true,
+            //     value: myBalance() - self.MinTonForStorage,
+            //     mode: SendIgnoreErrors
+            // }); // Send all ton minus Min for storage
+            let init: StateInit = initOf JettonDefaultWallet(sender(), self.owner );  
+            let walletAddress: Address = contractAddress(init);
             send(SendParameters{
-                to: self.owner,
-                bounce: true,
-                value: myBalance() - self.MinTonForStorage,
-                mode: SendIgnoreErrors
-            }); // Send all ton minus Min for storage
+                to: walletAddress, 
+                value: 0,
+                mode: (SendRemainingValue + SendIgnoreErrors),
+                bounce: false, // 0x7362d09c - notify new owner
+                body: TokenTransfer{
+                    queryId: 0,
+                    amount: jettons,
+                    destination: self.owner,
+                    response_destination: myAddress(),
+                    custom_payload: null,
+                    forward_ton_amount: ton("0.01"),
+                    forward_payload: emptySlice()
+                }.toCell()
+            }
+        );
         }
         return banksToBuy;
     }
