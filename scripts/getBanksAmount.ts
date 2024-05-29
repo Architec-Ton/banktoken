@@ -6,7 +6,8 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
     // const address = Address.parse('EQByVJjaA9EM8SzoApOuF0eE2USMNB2kT8ZlMV1TmWLfhgLe');
-    const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
+    // const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
+    const address = Address.parse(process.env.CROWDSALE_ADDRESS!);
 
     if (!(await provider.isContractDeployed(address))) {
         ui.write(`Error: Contract at address ${address} is not deployed!`);
@@ -18,7 +19,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const cs = provider.open(CrowdSale.fromAddress(address));
 
     const counterBefore =await cs.getSomeoneBanksBalance(addressBuyer);
-    ui.write('banks at address {addressBuyer} = {counterBefore}');
+    console.log ('banks at address ',  addressBuyer, counterBefore);
 
     
 }

@@ -70,7 +70,7 @@ import 'dotenv/config'
                 mode:  SendMode.IGNORE_ERRORS + SendMode.PAY_GAS_SEPARATELY, //comission 
                 outMsg: internal_relaxed({
                     to: address_CROWDSALE,
-                    value: toNano('0.015'),
+                    value: toNano('0.05'),
                     body: beginCell()
                         .store(storeBonus(bon))
                         .endCell()

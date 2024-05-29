@@ -7,7 +7,13 @@ export async function run(provider: NetworkProvider, args: string[]) {
 
     // run methods on `banksCrowdSaleV2`
     // const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
-    const address = Address.parse('EQB8EPrSzysu6wAGH9JF6X2jIOah9wUs-5sHo8oK8afKsvDp')
+    const address_HLW = Address.parse(process.env.HLWCONTRACT_ADDRESS!);
+    if (!(await provider.isContractDeployed(address_HLW))) {
+        ui.write(`Error: HLW Contract at address ${address_HLW} is not deployed!`);
+        return;
+    }
+
+    const address = Address.parse(process.env.CROWDSALE_ADDRESS!);
     if (!(await provider.isContractDeployed(address))) {
         ui.write(`Error: Contract at address ${address} is not deployed!`);
         return;
@@ -16,7 +22,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const banksCrowdSaleV2 = provider.open(BanksCrowdSaleV2.fromAddress(address));
 
     // SetManager
-    let manager = Address.parse('UQDwdIQ_Hx0A7ZkGz5L3OfDseIX-E9OgnOOkCyaQYKqi29RN');
+    let manager = address_HLW;
     // const manager = Address.parse( args.length > 0 ? args[0] : await ui.input('manager  address'));
      await banksCrowdSaleV2.send(
             provider.sender(),
