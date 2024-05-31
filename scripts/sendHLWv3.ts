@@ -12,9 +12,9 @@ import { MsgGenerator } from '../wrappers/MsgGenerator';
 import {HighloadQueryId} from "../wrappers/HighloadQueryId";
 import {Bonus, storeBonus} from '../build/BanksCrowdSaleV2/tact_BanksCrowdSaleV2';
 import { parse } from 'csv-parse';
-import * as fs  from  'fs';
 // import { env } from  'node:process';
 import 'dotenv/config'
+import fs from 'node:fs';
 
 
     let keyPair: KeyPair;
@@ -32,7 +32,6 @@ import 'dotenv/config'
 
     export async function run(provider: NetworkProvider, args: string[]) {
 
-    // beforeAll(async () => {
         const ui = provider.ui();
         keyPair = await  mnemonicToPrivateKey(process.env.WALLET_MNEMONIC!.split(' '));
 
@@ -44,7 +43,7 @@ import 'dotenv/config'
         const address_CROWDSALE = Address.parse(process.env.CROWDSALE_ADDRESS!);
         // const address = Address.parse('EQAKBlWOqJDIEQ8t3jIAXO06N1s9utti-1JoVUuWCX_5yPIY');
         //                             EQAKBlWOqJDIEQ8t3jIAXO06N1s9utti-1JoVUuWCX_5yPIY
-            if (!(await provider.isContractDeployed(address_CROWDSALE))) {
+        if (!(await provider.isContractDeployed(address_CROWDSALE))) {
             ui.write(`Error: HLW Contract at address ${address_CROWDSALE} is not deployed!`);
             return;
         }
@@ -56,29 +55,64 @@ import 'dotenv/config'
         
         const curQuery = new HighloadQueryId();
         let outMsgs: OutActionSendMsg[] = []; 
+        try {
+        // fs.readFileSync('./list_bobuses.csv', 'utf8',  (err, fileAirdrop) => {
+            const fileAirdrop = fs.readFileSync('./list_bobuses.csv', 'utf8');
+            const rows =  fileAirdrop.split('|');
+            for (let csvrow of  rows) {
+                const rows = csvrow.split(',');
+                const addrBon: Address = Address.parse(rows[0].toString());
+                const bon: Bonus =  {$$type: 'Bonus', 
+                                    to:addrBon,  
+                                    amount: BigInt(rows[1])};
+                outMsgs.push ({
+                    type: 'sendMsg',
+                    mode:  SendMode.IGNORE_ERRORS + SendMode.PAY_GAS_SEPARATELY, //comission 
+                    outMsg: internal_relaxed({
+                        to: address_CROWDSALE,
+                        value: toNano('0.05'),
+                        body: beginCell()
+                            .store(storeBonus(bon))
+                            .endCell()
+                    }),
+                })
+            } 
+            const res = await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, curQuery, DEFAULT_TIMEOUT*10, 1000);
+            console.log (res);
+        }
+        catch (err) {
+            console.error(err);
+          }
+        // });
+        // fs.createReadStream('./list_bobuses.csv')
+        //     .pipe(parse({delimiter: ','}))
+        //     .on('data', 
+        //         function(csvrow:any) {
+        //             // console.log(csvrow);   
+        //             if (csvrow  !== null){                    
+        //                     const addrBon: Address = Address.parse(csvrow[0].toString());
+        //                     const bon: Bonus =  {$$type: 'Bonus', 
+        //                                         to:addrBon,  
+        //                                         amount: csvrow[1]};
+        //                     outMsgs.push ({
+        //                         type: 'sendMsg',
+        //                         mode:  SendMode.IGNORE_ERRORS + SendMode.PAY_GAS_SEPARATELY, //comission 
+        //                         outMsg: internal_relaxed({
+        //                             to: address_CROWDSALE,
+        //                             value: toNano('0.05'),
+        //                             body: beginCell()
+        //                                 .store(storeBonus(bon))
+        //                                 .endCell()
+        //                         }),
+        //                     })
+        //                 }
+        //                 })
+        //      .on('end', async function() {
+        //                     //do something with csvData
+        //         const res = await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, curQuery, DEFAULT_TIMEOUT*10, 1000);
+        //         console.log (res);
+        //                 }); 
 
-        fs.createReadStream('./list_bobuses.csv')
-            .pipe(parse({delimiter: ','}))
-            .on('data', function(csvrow:any) {
-            // console.log(csvrow);
-            const addrBon: Address = Address.parse(csvrow[0].toString());
-            const bon: Bonus =  {$$type: 'Bonus', 
-                                to:addrBon,  
-                                amount: csvrow[1]};
-            outMsgs.push ({
-                type: 'sendMsg',
-                mode:  SendMode.IGNORE_ERRORS + SendMode.PAY_GAS_SEPARATELY, //comission 
-                outMsg: internal_relaxed({
-                    to: address_CROWDSALE,
-                    value: toNano('0.05'),
-                    body: beginCell()
-                        .store(storeBonus(bon))
-                        .endCell()
-                }),
-            })
-        });
-
-        const res = await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, curQuery, DEFAULT_TIMEOUT*10, 1000);
         
         // expect(res.transactions).toHaveTransaction({
         //     on: highloadWalletV3.address,
