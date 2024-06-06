@@ -1,5 +1,5 @@
 import { Blockchain, EmulationError, SandboxContract, createShardAccount, internal } from '@ton/sandbox';
-import { beginCell, Cell, SendMode, toNano, Address, internal as internal_relaxed, Dictionary, BitString, OutActionSendMsg } from '@ton/core';
+import { Builder, beginCell, Cell, SendMode, toNano, Address, internal as internal_relaxed, Dictionary, BitString, OutActionSendMsg } from '@ton/core';
 import {HighloadWalletV3, TIMEOUT_SIZE, TIMESTAMP_SIZE} from '../wrappers/HighloadWalletV3';
 import '@ton/test-utils';
 import { getSecureRandomBytes, KeyPair, keyPairFromSeed, mnemonicToPrivateKey } from "ton-crypto";
@@ -52,9 +52,15 @@ import fs from 'node:fs';
        highloadWalletV3 = provider.open(
             HighloadWalletV3.createFromAddress(address_HLW)
             );
-        
-        const curQuery = new HighloadQueryId();
-        let outMsgs: OutActionSendMsg[] = []; 
+
+        // костыльное получение настоящего query, константу предполагается инкрементировать после каждого успешного запроса
+        let curQuery = new HighloadQueryId();
+        const goodCurQuery = 12
+        for (let i = 0; i < goodCurQuery; ++i) {
+            curQuery = curQuery.getNext()
+        }
+
+        let outMsgs: OutActionSendMsg[] = [];
         try {
         // fs.readFileSync('./list_bobuses.csv', 'utf8',  (err, fileAirdrop) => {
             const fileAirdrop = fs.readFileSync('./list_bobuses.csv', 'utf8');
@@ -63,22 +69,47 @@ import fs from 'node:fs';
                 const rows = csvrow.split(',');
                 const addrBon: Address = Address.parse(rows[0].toString());
                 const bon: Bonus =  {$$type: 'Bonus', 
-                                    to:addrBon,  
+                                    to:addrBon,
                                     amount: BigInt(rows[1])};
+
+                // функция с таким же названием как и раньше, однако её результат закладывается в ячейку с помощью storeRef
+                function storeBonus(src: Bonus) {
+                    let b_0 = new Builder();
+                    b_0.storeUint(3122429960, 32);
+                    b_0.storeAddress(src.to);
+                    b_0.storeUint(src.amount, 32);
+
+                    return b_0
+                }
+
+                const body = beginCell()
+                    .storeRef(storeBonus(bon))
+                    .endCell()
+
                 outMsgs.push ({
                     type: 'sendMsg',
-                    mode:  SendMode.IGNORE_ERRORS + SendMode.PAY_GAS_SEPARATELY, //comission 
+                    mode:  SendMode.IGNORE_ERRORS, // https://docs.ton.org/develop/smart-contracts/messages#message-modes - если интересно
                     outMsg: internal_relaxed({
                         to: address_CROWDSALE,
                         value: toNano('0.05'),
-                        body: beginCell()
-                            .store(storeBonus(bon))
-                            .endCell()
+                        body: body
                     }),
                 })
-            } 
-            const res = await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, curQuery, DEFAULT_TIMEOUT*10, 1000);
+            }
+
+            // из-за этих трёх красавцев была 500
+            const goodSubWalletId = 0x10ad; // взято из официальных доков
+            const goodTimeout = 60 * 60; // в секундах, отвечает за время "жизни" транзакции относительно createdAt, желательно менять в пределах от 1 до 24 часов
+            const goodCreatedAt = Math.floor(Date.now() / 1000 - 100) // временная метка, являющаяся необязательным аргументом, но sendBatch как то плохо её генерирует
+            /* последние два должны удовлетворять соотношениям
+               created_at > now() - timeout;
+               created_at <= now();
+             (now() - текущее время у tvm)
+             */
+
+            const res = await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, goodSubWalletId, curQuery, goodTimeout, goodCreatedAt);
             console.log (res);
+            console.log('Next queryId: ' + (goodCurQuery + 1))
         }
         catch (err) {
             console.error(err);
