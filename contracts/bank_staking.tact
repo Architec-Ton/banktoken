@@ -1,9 +1,10 @@
 import "@stdlib/deploy";
-import "./bank_token.tact";
+import "./bank_jetton.tact";
 import "./imports/message.tact";
+import "./stake_storage.tact";
 
 contract BankStaking with Deployable {
-  this_contract_jettonWallet: Address?;
+    jettonAddress: Address?;
     owner: Address;
     index: Int as uint32 = 0;
     stake_record: map<Int, StakeRecord>;
@@ -11,28 +12,61 @@ contract BankStaking with Deployable {
     start_time: Int as uint32;
     total_score: Int as uint128 = 0;
     parameter: Int as uint16;
+    firstCell:Address;
+    lastCell:Address;
 
     // TODO: 
     // jetton_root_init: InitOf;
     // get fun get_jetton_root(): Address{}
     // InitOf vs Address: Which one has lowest storage cost? 
 
-    init(_owner: Address, _parameter: Int){
-        // self.this_contract_jettonWallet = this_contract_jettonWallet;
-        self.owner = _owner;
+    init(_jettonAddress: Address, _parameter: Int){
+        self.jettonAddress = _jettonAddress;
         self.parameter = _parameter;
+        self.owner = context().sender;
         self.start_time = now();
+        self.firstCell = newAddress(0,0);
+        self.lastCell = newAddress(0,0);
     }
 
     // The notification for the Jetton Token contract noification(when current address receive the token will get the notification)
-    receive(stake: TokenNotification){
+    receive(stake: JettonTransferNotification){
         require(context().value >= ton("0.1"), "not enough value");
-        
+        let stakeInit: StateInit = initOf StakeStorage(context().sender);
+        // init iterator if need
+        if (self.firstCell ==  newAddress(0, 0)) {self.firstCell = contractAddress(stakeInit);}
+        if (self.lastCell ==  newAddress(0, 0)) {self.lastCell = contractAddress(stakeInit);}
+        //send stake info
+        send(SendParameters{
+                to: contractAddress(stakeInit), 
+                value: 0,
+                mode: SendRemainingValue, 
+                bounce: false,
+                body:Add {
+                        queryId: stake.query_id, //Int as uint64;
+                        amount:  stake.amount, //Int as uint32;
+                        previousCell: self.lastCell, // Address;
+                        nextCell: self.firstCell // Address;
+                }.toCell()
+        });
+        //update iterator
+
+        send(SendParameters{
+                to: self.lastCell, 
+                value: 0,
+                mode: SendRemainingValue, 
+                bounce: false,
+                body:UpdateNext {
+                    nextCell: contractAddress(stakeInit) // Address;
+                }.toCell()
+        });
+        self.lastCell = contractAddress(stakeInit);
+
         // Check the sender is from the Jetton Wallet
-        require(context().sender == self.this_contract_jettonWallet, "not from one of any jetton wallet");
+        // require(context().sender == self.jettonAddress, "not from one of any jetton wallet");
         
         // Manipulating the score you want to give, no matter based on time or amount
-        let score: Int = self.score_function(stake.amount);
+        /* let score: Int = self.score_function(stake.amount);
         
         // Update the stake record
         self.stake_record.set(self.index,
@@ -53,9 +87,9 @@ contract BankStaking with Deployable {
         }
         self.total_score = (self.total_score + score);
         self.index = (self.index + 1);
-
-        // Submit the Log Event
-        emit(TransferEvent{sender_address: stake.from, jetton_amount: stake.amount, score: score}.toCell());
+*/
+        // Submit the Log Event 
+        // emit(TransferEvent{sender_address: stake.from, jetton_amount: stake.amount, score: score}.toCell());
     }
 
     // To get the ratio of a user in a on-chain ways
@@ -88,11 +122,11 @@ contract BankStaking with Deployable {
         require(stake_record.jettonStakeAmount > 0, "don't have value");
         self.stake_record.set(msg.index_id, null);
         send(SendParameters{
-                to: self.this_contract_jettonWallet!!,
+                to: self.jettonAddress!!,
                 value: 0,
                 mode: (SendRemainingValue + SendIgnoreErrors),
                 bounce: false, // 0x7362d09c - notify new owner
-                body: TokenTransfer{
+                body: JettonTransfer{
                     query_id: 0,
                     amount: stake_record.jettonStakeAmount,
                     destination: context().sender,
@@ -105,13 +139,7 @@ contract BankStaking with Deployable {
         );
     }
 
-    fun score_function(jetton_amount: Int): Int {         
-        return (jetton_amount * pow(10, 18) / self.durationTime() * self.parameter / 1000); 
-    }
 
-    fun durationTime(): Int {
-        return now() - self.start_time;
-    }
 
     // TODO: Admin 強制 UnStake所有代幣？
     // admin enable to withdraw the token to the original depositor
@@ -126,15 +154,15 @@ contract BankStaking with Deployable {
         return self.score_list;
     }
 
-    get fun get_return_staking_data(): StakingData {
-        return
-            StakingData{
-                index: self.index,
-                this_contract_jettonWallet: self.this_contract_jettonWallet!!,
-                total_score: self.total_score,
-                parameter: self.parameter
-            };
-    }
+    // get fun get_return_staking_data(): StakingData {
+    //     return
+    //         StakingData{
+    //             index: self.index,
+    //             jettonAddress: self.jettonAddress!!,
+    //             total_score: self.total_score,
+    //             parameter: self.parameter
+    //         };
+    // }
 
      // get fun get_ratio_of_stake(StakeTokenAmount: Int): Int {
     //     return self.score_function(StakeTokenAmount) * pow(10, 9) / self.total_score;

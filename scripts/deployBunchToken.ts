@@ -1,6 +1,6 @@
 import { Address, beginCell, Cell, Slice, toNano } from 'ton';
 
-import { bankToken } from '../wrappers/BankToken';
+import { BankJetton } from '../wrappers/BankJetton';
 import { NetworkProvider } from '@ton/blueprint';
 import { buildOnchainMetadata } from '../utils/jetton-helpers';
 
@@ -16,8 +16,8 @@ export async function run(provider: NetworkProvider) {
         image: 'https://www.architecton.site/bank.png',
         //image_data:""
     };
-    const bankToken = provider.open(
-        await bankToken.fromInit(
+    const BankJetton = provider.open(
+        await BankJetton.fromInit(
             buildOnchainMetadata(content),
             max_supply,
             // owner: Address,
@@ -26,7 +26,7 @@ export async function run(provider: NetworkProvider) {
         ),
     );
 
-    await bankToken.send(
+    await BankJetton.send(
         provider.sender(),
         {
             value: 50_000_000n, //toNano('0.05'),
@@ -37,8 +37,8 @@ export async function run(provider: NetworkProvider) {
         },
     );
 
-    await provider.waitForDeploy(bankToken.address);
+    await provider.waitForDeploy(BankJetton.address);
 
-    // console.log('ID', await bankToken.getId());
-    console.log('address', bankToken.address);
+    // console.log('ID', await BankJetton.getId());
+    console.log('address', BankJetton.address);
 }

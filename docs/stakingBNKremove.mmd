@@ -1,0 +1,8 @@
+sequenceDiagram
+Actor Staker
+Staker->>BankJetton: remove amount <BR/>of Banks <BR/> from StakeFactory
+BankJetton->>StakeFactory: remove amount <br/>of Banks for Staker
+BankJetton->>StakeSafe4Staker: decrease  Banks
+BankJetton->>BankJettonWalletStaker:increase amount of Banks
+BankJetton->>BankJettonWalletStakeFactory: decrease banks
+StakeSafe4Staker->>StakeSafe4Staker: fixing total amount, date
