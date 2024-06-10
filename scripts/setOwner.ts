@@ -29,7 +29,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         },
         {
             $$type: 'ChangeOwner',
-            query_id: 0n,
+            queryId: 0n,
             newOwner: newOwner,
         },
     );

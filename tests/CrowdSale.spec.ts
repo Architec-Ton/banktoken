@@ -1,7 +1,7 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 // import { toNano } from '@ton/core';
 import { Address, beginCell, Cell, Slice, toNano } from '@ton/ton';
-import { ContractSystem } from '@tact-lang/emulator';
+// import { ContractSystem } from '@tact-lang/emulator';
 import { CrowdSale } from '../wrappers/CrowdSale';
 import '@ton/test-utils';
 
@@ -31,7 +31,7 @@ describe('CrowdSale', () => {
             },
             {
                 $$type: 'Deploy',
-                query_id: 0n,
+                queryId: 0n,
             },
         );
 

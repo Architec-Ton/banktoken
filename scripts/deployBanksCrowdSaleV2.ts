@@ -15,7 +15,7 @@ export async function run(provider: NetworkProvider) {
             queryId: 0n,
         },
     );
-    console.log(banksCrowdSaleV2.address)
+    console.log(banksCrowdSaleV2.address);
     await provider.waitForDeploy(banksCrowdSaleV2.address);
 
     // run methods on `banksCrowdSaleV2`
@@ -28,7 +28,7 @@ export async function run(provider: NetworkProvider) {
     //     },
     //     {
     //         $$type: 'ChangeOwner',
-    //         query_id: 0n,
+    //         queryId: 0n,
     //         newOwner: newOwner
     //     }
     // );

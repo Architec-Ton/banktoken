@@ -10,10 +10,10 @@ describe('BankStaking', () => {
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
-
-        bankStaking = blockchain.openContract(await BankStaking.fromInit());
-
         deployer = await blockchain.treasury('deployer');
+        bankStaking = blockchain.openContract(await BankStaking.fromInit(deployer.address, 1n));
+
+        
 
         const deployResult = await bankStaking.send(
             deployer.getSender(),
@@ -22,7 +22,7 @@ describe('BankStaking', () => {
             },
             {
                 $$type: 'Deploy',
-                query_id: 0n,
+                queryId: 0n,
             },
         );
 

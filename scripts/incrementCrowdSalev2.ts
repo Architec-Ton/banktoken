@@ -23,7 +23,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         },
         {
             $$type: 'Add',
-            query_id: 0n,
+            queryId: 0n,
             amount: 1n,
         },
     );

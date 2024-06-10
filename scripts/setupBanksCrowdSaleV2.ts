@@ -6,7 +6,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
     // run methods on `banksCrowdSaleV2`
-    const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
+    const address = Address.parse(args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
     // const address = Address.parse('EQAKBlWOqJDIEQ8t3jIAXO06N1s9utti-1JoVUuWCX_5yPIY');
     //                             EQAKBlWOqJDIEQ8t3jIAXO06N1s9utti-1JoVUuWCX_5yPIY
     if (!(await provider.isContractDeployed(address))) {
@@ -26,7 +26,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     //         },
     //         {
     //             $$type: 'SetManager',
-    //             // query_id: 0n,
+    //             // queryId: 0n,
     //             to: manager
     //         }
     //     );
@@ -46,7 +46,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     // //     },
     // //     {
     // //         $$type: 'SetBankersOffset',
-    // //         // query_id: 0n,
+    // //         // queryId: 0n,
     // //         offset: bankersOffset,
     // //     },
     // // );
@@ -69,7 +69,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         },
         {
             $$type: 'SetBankOffset',
-            // query_id: 0n,
+            // queryId: 0n,
             offset: banksOffset,
         },
     );
@@ -85,7 +85,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     //     },
     //     {
     //         $$type: 'ChangeOwner',
-    //         query_id: 0n,
+    //         queryId: 0n,
     //         newOwner: newOwner
     //     }
     // );

@@ -12,7 +12,7 @@ export async function run(provider: NetworkProvider) {
         },
         {
             $$type: 'Deploy',
-            query_id: 0n,
+            queryId: 0n,
         },
     );
 
@@ -27,7 +27,7 @@ export async function run(provider: NetworkProvider) {
         },
         {
             $$type: 'ChangeOwner',
-            query_id: 0n,
+            queryId: 0n,
             newOwner: newOwner,
         },
     );

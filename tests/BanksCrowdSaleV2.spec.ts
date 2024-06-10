@@ -22,7 +22,7 @@ describe('BanksCrowdSaleV2', () => {
             },
             {
                 $$type: 'Deploy',
-                query_id: 0n,
+                queryId: 0n,
             },
         );
 

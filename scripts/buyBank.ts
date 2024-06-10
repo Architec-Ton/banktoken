@@ -35,7 +35,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         {
             $$type: 'ReferralAddress',
             referral: Address.parse('EQDOQbS74Sn-sGojYfUK6Uknlg8t1CdNjG-5VJx5VIO2zNms'),
-            // query_id: 0n,
+            // queryId: 0n,
             // amount: 1n,
         },
     );

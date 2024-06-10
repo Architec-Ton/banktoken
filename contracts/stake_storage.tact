@@ -1,4 +1,5 @@
-import "@stdlib/deploy";
+// import "@stdlib/deploy";
+// import "@stdlib/Ownable";
 // import "./storage.tact";
 
 
@@ -88,7 +89,7 @@ trait Storage /* with Ownable  with Deployable */ {
 }
 
 
-contract StakeStorage with Deployable, Storage {
+contract StakeStorage with  Storage {
     amount: Int as uint32 = 0;
     updatetime: Int as uint32 = 0;
     previousCell: Address;

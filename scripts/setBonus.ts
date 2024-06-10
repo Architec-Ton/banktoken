@@ -7,8 +7,8 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
     // const address = Address.parse('EQByVJjaA9EM8SzoApOuF0eE2USMNB2kT8ZlMV1TmWLfhgLe');
-    const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
-    
+    const address = Address.parse(args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
+
     // const address = Address.parse('EQB8EPrSzysu6wAGH9JF6X2jIOah9wUs-5sHo8oK8afKsvDp');
     if (!(await provider.isContractDeployed(address))) {
         ui.write(`Error: Contract at address ${address} is not deployed!`);
@@ -36,7 +36,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     //     },
     //     {
     //         $$type: 'Bonus',
-    //         // query_id: 0n,
+    //         // queryId: 0n,
     //         to: ownBefore,
     //         amount: 1n,
     //     },
