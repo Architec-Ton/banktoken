@@ -1,12 +1,13 @@
-import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from  '@ton/sandbox';
+import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
 //'@ton-community/sandbox';
-import { Cell, beginCell, toNano } from 'ton-core';
+import { Cell, beginCell, toNano } from '@ton/core';
 // import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
 import { ArcJetton, JettonBurn } from '../build/ArcJetton/tact_ArcJetton';
 // wrappers/JettonExample_ArcJetton';
 import { ArcJettonWallet, JettonTransfer } from '../build/ArcJetton/tact_ArcJettonWallet';
 //../wrappers/JettonExample_ArcJettonWallet';
-import '@ton-community/test-utils';
+// import '@ton-community/test-utils';
+import '@ton/test-utils';
 
 describe('NFTExample', () => {
     let blockchain: Blockchain;
@@ -28,7 +29,7 @@ describe('NFTExample', () => {
             {
                 $$type: 'Deploy',
                 queryId: 0n,
-            }
+            },
         );
 
         expect(deployResult.transactions).toHaveTransaction({
@@ -51,7 +52,7 @@ describe('NFTExample', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1'
+            'Mint:1',
         );
         //printTransactionFees(mintyResult.transactions);
 
@@ -90,7 +91,7 @@ describe('NFTExample', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1'
+            'Mint:1',
         );
         // Alice's jetton wallet address
         const aliceWalletAddress = await jettonMaster.getGetWalletAddress(alice.address);
@@ -104,7 +105,7 @@ describe('NFTExample', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1'
+            'Mint:1',
         );
         // Bob's jetton wallet address
         const bobWalletAddress = await jettonMaster.getGetWalletAddress(bob.address);
@@ -128,7 +129,7 @@ describe('NFTExample', () => {
             {
                 value: toNano('1'),
             },
-            jettonTransfer
+            jettonTransfer,
         );
         //printTransactionFees(transfterResult.transactions);
 
@@ -165,7 +166,7 @@ describe('NFTExample', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1'
+            'Mint:1',
         );
 
         const jettonBurn: JettonBurn = {
@@ -189,7 +190,7 @@ describe('NFTExample', () => {
             {
                 value: toNano('1'),
             },
-            jettonBurn
+            jettonBurn,
         );
         //printTransactionFees(burnResult.transactions);
 

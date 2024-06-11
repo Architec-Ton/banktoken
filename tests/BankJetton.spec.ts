@@ -1,10 +1,12 @@
 import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
 //'@ton-community/sandbox';
-import { Cell, beginCell, toNano } from 'ton-core';
+import { Cell, beginCell, toNano } from '@ton/core';
 // import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
 import { BankJetton, JettonBurn } from '../build/BankJetton/tact_BankJetton';
 import { BankJettonWallet, JettonTransfer } from '../build/BankJetton/tact_BankJettonWallet';
-import '@ton-community/test-utils';
+// import '@ton-community/test-utils';
+import '@ton/test-utils';
+
 
 describe('NFTExample', () => {
     let blockchain: Blockchain;
@@ -113,7 +115,7 @@ describe('NFTExample', () => {
         // Alice transfer 1 token to Bob
         const jettonTransfer: JettonTransfer = {
             $$type: 'JettonTransfer',
-            queryId: 0n,
+            query_id: 0n,
             amount: 1n,
             destination: bob.address,
             response_destination: bob.address,
@@ -168,7 +170,7 @@ describe('NFTExample', () => {
 
         const jettonBurn: JettonBurn = {
             $$type: 'JettonBurn',
-            queryId: 0n,
+            query_id: 0n,
             amount: 1n,
             response_destination: alice.address,
             custom_payload: null,
