@@ -57,6 +57,6 @@ export function buildOnchainMetadata(data: {
 
     return beginCell()
         .storeInt(ONCHAIN_CONTENT_PREFIX, 8)
-.storeDict(dict)
+        .storeDict(dict)
         .endCell();
 }

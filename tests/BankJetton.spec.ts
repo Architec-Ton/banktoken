@@ -1,26 +1,34 @@
 import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
 //'@ton-community/sandbox';
-import { Cell, beginCell, toNano } from '@ton/core';
+import { Cell, beginCell, toNano, TupleReader, Dictionary } from '@ton/core';
 // import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
 import { BankJetton, JettonBurn } from '../build/BankJetton/tact_BankJetton';
 import { BankJettonWallet, JettonTransfer } from '../build/BankJetton/tact_BankJettonWallet';
 // import '@ton-community/test-utils';
 import '@ton/test-utils';
+import { buildOnchainMetadata } from "../utils/jetton-helpers";
 
 
-describe('NFTExample', () => {
+describe('BNK jetton test', () => {
     let blockchain: Blockchain;
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;
-    let jettonMaster: SandboxContract<BankJetton>;
+    let bankJetton: SandboxContract<BankJetton>;
+    const jettonParams = {
+        name: "BNK jetton",
+        description: "This is description for BNK jetton",
+        symbol: "BNK",
+        image: "https://www.com/BNKjetton.png",
+        //uri: TODO - to show in ARCWallet
+    };
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
         owner = await blockchain.treasury('owner');
         alice = await blockchain.treasury('alice');
-        const jetton_content: Cell = beginCell().endCell();
-        jettonMaster = blockchain.openContract(await BankJetton.fromInit(owner.address, jetton_content));
-        const deployResult = await jettonMaster.send(
+        // const jetton_content: Cell = beginCell().endCell();
+        bankJetton = blockchain.openContract(await BankJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
+        const deployResult = await bankJetton.send(
             owner.getSender(),
             {
                 value: toNano('0.05'),
@@ -33,7 +41,7 @@ describe('NFTExample', () => {
 
         expect(deployResult.transactions).toHaveTransaction({
             from: owner.address,
-            to: jettonMaster.address,
+            to: bankJetton.address,
             deploy: true,
             success: true,
         });
@@ -46,7 +54,7 @@ describe('NFTExample', () => {
 
     it('should mint 1 token to Alice', async () => {
         // Mint 1 token to Alice
-        const mintyResult = await jettonMaster.send(
+        const mintyResult = await bankJetton.send(
             alice.getSender(),
             {
                 value: toNano('1'),
@@ -55,17 +63,17 @@ describe('NFTExample', () => {
         );
         //printTransactionFees(mintyResult.transactions);
 
-        // Check that Alice send "Mint:1" msg to JettonMaster
+        // Check that Alice send "Mint:1" msg to bankJetton
         expect(mintyResult.transactions).toHaveTransaction({
             from: alice.address,
-            to: jettonMaster.address,
+            to: bankJetton.address,
             success: true,
         });
 
-        // Check that JettonMaster send 1 token to Alice's jetton wallet
-        const aliceWalletAddress = await jettonMaster.getGetWalletAddress(alice.address);
+        // Check that bankJetton send 1 token to Alice's jetton wallet
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         expect(mintyResult.transactions).toHaveTransaction({
-            from: jettonMaster.address,
+            from: bankJetton.address,
             to: aliceWalletAddress,
             success: true,
         });
@@ -85,7 +93,7 @@ describe('NFTExample', () => {
 
     it('should Alice send 1 token to Bob', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
-        await jettonMaster.send(
+        await bankJetton.send(
             alice.getSender(),
             {
                 value: toNano('1'),
@@ -93,13 +101,13 @@ describe('NFTExample', () => {
             'Mint:1',
         );
         // Alice's jetton wallet address
-        const aliceWalletAddress = await jettonMaster.getGetWalletAddress(alice.address);
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(aliceWalletAddress));
 
         // Mint 1 token to Bob first to build his jetton wallet
         const bob = await blockchain.treasury('bob');
-        const mintyResult = await jettonMaster.send(
+        const mintyResult = await bankJetton.send(
             bob.getSender(),
             {
                 value: toNano('1'),
@@ -107,7 +115,7 @@ describe('NFTExample', () => {
             'Mint:1',
         );
         // Bob's jetton wallet address
-        const bobWalletAddress = await jettonMaster.getGetWalletAddress(bob.address);
+        const bobWalletAddress = await bankJetton.getGetWalletAddress(bob.address);
         // Bob's jetton wallet
         const bobJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(bobWalletAddress));
         const bobBalanceBefore = (await bobJettonContract.getGetWalletData()).balance;
@@ -160,7 +168,7 @@ describe('NFTExample', () => {
 
     it('should Alice burn 1 token', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
-        const mintyResult = await jettonMaster.send(
+        const mintyResult = await bankJetton.send(
             alice.getSender(),
             {
                 value: toNano('1'),
@@ -177,7 +185,7 @@ describe('NFTExample', () => {
         };
 
         // Alice's jetton wallet address
-        const aliceWalletAddress = await jettonMaster.getGetWalletAddress(alice.address);
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(aliceWalletAddress));
         // Alice's jetton wallet balance before burning
@@ -200,16 +208,16 @@ describe('NFTExample', () => {
             success: true,
         });
 
-        // Check that Alice's jetton wallet send JettonBurnNotification msg to JettonMaster
+        // Check that Alice's jetton wallet send JettonBurnNotification msg to bankJetton
         expect(burnResult.transactions).toHaveTransaction({
             from: aliceWalletAddress,
-            to: jettonMaster.address,
+            to: bankJetton.address,
             success: true,
         });
 
-        // Check that JettonMaster send JettonExcesses msg to Alice
+        // Check that bankJetton send JettonExcesses msg to Alice
         expect(burnResult.transactions).toHaveTransaction({
-            from: jettonMaster.address,
+            from: bankJetton.address,
             to: alice.address,
             success: true,
         });
@@ -217,5 +225,13 @@ describe('NFTExample', () => {
         // Check that Alice's jetton wallet balance is subtracted 1
         const aliceBalanceAfter = (await aliceJettonContract.getGetWalletData()).balance;
         expect(aliceBalanceAfter).toEqual(aliceBalanceBefore - 1n);
+    });
+
+    it('get token data ', async () => {
+        const jettondata = await bankJetton.getGetJettonData(); 
+
+        // expect(jettondata).toEqual(jettonParams);
+
+     
     });
 });
