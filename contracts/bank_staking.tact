@@ -4,7 +4,7 @@ import "./imports/message.tact";
 import "./stake_storage.tact";
 
 contract BankStaking with Deployable {
-    jettonAddress: Address?;
+    jettonAddress: Address;
     owner: Address;
     index: Int as uint32 = 0;
     stake_record: map<Int, StakeRecord>;
@@ -31,8 +31,9 @@ contract BankStaking with Deployable {
 
     // The notification for the Jetton Token contract noification(when current address receive the token will get the notification)
     receive(stake: JettonTransferNotification){
+        dump("JettonTransferNotification");
         require(context().value >= ton("0.1"), "not enough value");
-        let stakeInit: StateInit = initOf StakeStorage(context().sender);
+        let stakeInit: StateInit = initOf StakeStorage(self.owner, self.jettonAddress);
         // init iterator if need
         if (self.firstCell ==  newAddress(0, 0)) {self.firstCell = contractAddress(stakeInit);}
         if (self.lastCell ==  newAddress(0, 0)) {self.lastCell = contractAddress(stakeInit);}
@@ -41,13 +42,15 @@ contract BankStaking with Deployable {
                 to: contractAddress(stakeInit), 
                 value: 0,
                 mode: SendRemainingValue, 
-                bounce: false,
+                bounce: true,
                 body:Add {
                         queryId: stake.query_id, //Int as uint64;
                         amount:  stake.amount, //Int as uint32;
                         previousCell: self.lastCell, // Address;
                         nextCell: self.firstCell // Address;
-                }.toCell()
+                }.toCell(),
+                code: stakeInit.code,
+                data: stakeInit.data
         });
         //update iterator
 
@@ -93,22 +96,22 @@ contract BankStaking with Deployable {
     }
 
     // To get the ratio of a user in a on-chain ways
-    receive(msg: GetWeighted){
-        let ctx: Context = context();
-        let user_score: Int = self.score_list.get(msg.applied_user_address)!!;
-        require(user_score > 0, "no Record");
-        send(SendParameters{
-                to: ctx.sender,
-                value: 0,
-                mode: (SendRemainingValue + SendIgnoreErrors),
-                bounce: true,
-                body: PassScoreToRoundContract{
-                    checked_address: msg.applied_user_address, // 0xe5fd7f29
-                    return_score: user_score
-                }.toCell()
-            }
-        );
-    }
+    // receive(msg: GetWeighted){
+    //     let ctx: Context = context();
+    //     let user_score: Int = self.score_list.get(msg.applied_user_address)!!;
+    //     require(user_score > 0, "no Record");
+    //     send(SendParameters{
+    //             to: ctx.sender,
+    //             value: 0,
+    //             mode: (SendRemainingValue + SendIgnoreErrors),
+    //             bounce: true,
+    //             body: PassScoreToRoundContract{
+    //                 checked_address: msg.applied_user_address, // 0xe5fd7f29
+    //                 return_score: user_score
+    //             }.toCell()
+    //         }
+    //     );
+    // }
 
     // receive(msg: AdminExecute) {}
 
@@ -122,7 +125,7 @@ contract BankStaking with Deployable {
         require(stake_record.jettonStakeAmount > 0, "don't have value");
         self.stake_record.set(msg.index_id, null);
         send(SendParameters{
-                to: self.jettonAddress!!,
+                to: self.jettonAddress,
                 value: 0,
                 mode: (SendRemainingValue + SendIgnoreErrors),
                 bounce: false, // 0x7362d09c - notify new owner
@@ -146,6 +149,10 @@ contract BankStaking with Deployable {
 
     receive(){}
 
+    get fun calculate_stake_address(_owner: Address, _factory: Address): Address {
+        
+        return contractAddress(initOf StakeStorage(_owner, _factory));
+    }
     get fun get_user_stake_record(): map<Int, StakeRecord> {
         return self.stake_record;
     }

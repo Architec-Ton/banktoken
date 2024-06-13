@@ -8,7 +8,7 @@ import { ArcJettonWallet, JettonTransfer } from '../build/ArcJetton/tact_ArcJett
 //../wrappers/JettonExample_ArcJettonWallet';
 // import '@ton-community/test-utils';
 import '@ton/test-utils';
-import { buildOnchainMetadata } from "../utils/jetton-helpers";
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
 import { isObject } from 'node:util';
 import { deserialize } from 'node:v8';
 import { deserializeBoc } from '@ton/core/dist/boc/cell/serialization';
@@ -22,10 +22,10 @@ describe('ARC jetton test', () => {
     let alice: SandboxContract<TreasuryContract>;
     let ARCJetton: SandboxContract<ArcJetton>;
     const jettonParams = {
-        name: "ARC jetton",
-        description: "This is description for ARC jetton",
-        symbol: "ARC",
-        image: "https://www.com/ARCjetton.png"
+        name: 'ARC jetton',
+        description: 'This is description for ARC jetton',
+        symbol: 'ARC',
+        image: 'https://www.com/ARCjetton.png',
     };
 
     beforeEach(async () => {
@@ -33,7 +33,9 @@ describe('ARC jetton test', () => {
         owner = await blockchain.treasury('owner');
         alice = await blockchain.treasury('alice');
         // const jetton_content: Cell = beginCell().endCell();
-        ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
+        ARCJetton = blockchain.openContract(
+            await ArcJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)),
+        );
         const deployResult = await ARCJetton.send(
             owner.getSender(),
             {
@@ -137,31 +139,31 @@ describe('ARC jetton test', () => {
             forward_ton_amount: 0n,
             forward_payload: beginCell().endCell(),
         };
-        const transfterResult = await aliceJettonContract.send(
+        const transferResult = await aliceJettonContract.send(
             alice.getSender(),
             {
                 value: toNano('1'),
             },
             jettonTransfer,
         );
-        //printTransactionFees(transfterResult.transactions);
+        //printTransactionFees(transferResult.transactions);
 
         // Check that Alice send JettonTransfer msg to her jetton wallet
-        expect(transfterResult.transactions).toHaveTransaction({
+        expect(transferResult.transactions).toHaveTransaction({
             from: alice.address,
             to: aliceWalletAddress,
             success: true,
         });
 
         // Check that Alice's jetton wallet send JettonInternalTransfer msg to Bob's jetton wallet
-        expect(transfterResult.transactions).toHaveTransaction({
+        expect(transferResult.transactions).toHaveTransaction({
             from: aliceWalletAddress,
             to: bobWalletAddress,
             success: true,
         });
 
         // Check that Bob's jetton wallet send JettonExcesses msg to Bob
-        expect(transfterResult.transactions).toHaveTransaction({
+        expect(transferResult.transactions).toHaveTransaction({
             from: bobWalletAddress,
             to: bob.address,
             success: true,
@@ -235,45 +237,46 @@ describe('ARC jetton test', () => {
 
     it('get token data ', async () => {
         const getKeys = async () => {
-            const metadataKeys = new Map<bigint, string>()
-            const metadata = ['name', 'description', 'symbol', 'image']
+            const metadataKeys = new Map<bigint, string>();
+            const metadata = ['name', 'description', 'symbol', 'image'];
 
             for (let i of metadata) {
-                const sha256View = await sha256(i)
-                let b = 0n, c = 1n << 248n
+                const sha256View = await sha256(i);
+                let b = 0n,
+                    c = 1n << 248n;
                 for (let byte of sha256View) {
-                    b += BigInt(byte) * c
-                    c /= 256n
+                    b += BigInt(byte) * c;
+                    c /= 256n;
                 }
-                metadataKeys.set(b, i)
+                metadataKeys.set(b, i);
             }
 
             return metadataKeys;
-        }
+        };
 
         const jettondata = await ARCJetton.getGetJettonData();
 
-        let totalSupply = jettondata.total_supply
-        let mintable = jettondata.mintable
-        let adminAddress = jettondata.admin_address
-        let cellJettonContent = jettondata.jetton_content
-        let jettonWalletCode = jettondata.jetton_wallet_code
+        let totalSupply = jettondata.total_supply;
+        let mintable = jettondata.mintable;
+        let adminAddress = jettondata.admin_address;
+        let cellJettonContent = jettondata.jetton_content;
+        let jettonWalletCode = jettondata.jetton_wallet_code;
 
-        const hasMap = parseDict(cellJettonContent.refs[0].beginParse(), 256, (src) => src)
-        const deserializeHashMap = new Map<string, string>()
-        const metadataKeys = await getKeys()
+        const hasMap = parseDict(cellJettonContent.refs[0].beginParse(), 256, (src) => src);
+        const deserializeHashMap = new Map<string, string>();
+        const metadataKeys = await getKeys();
 
         for (let [intKey, stringKey] of metadataKeys) {
-            const value = hasMap.get(intKey).loadStringTail().split('\x00')[1]
-            deserializeHashMap.set(stringKey, value)
+            const value = hasMap.get(intKey).loadStringTail().split('\x00')[1];
+            deserializeHashMap.set(stringKey, value);
         }
 
         const jettonContent = {
             name: deserializeHashMap.get('name'),
             description: deserializeHashMap.get('description'),
             symbol: deserializeHashMap.get('symbol'),
-            image: deserializeHashMap.get('image')
-        }
+            image: deserializeHashMap.get('image'),
+        };
 
         expect(jettonContent).toEqual(jettonParams);
     });

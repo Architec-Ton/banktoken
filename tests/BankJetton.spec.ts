@@ -6,8 +6,7 @@ import { BankJetton, JettonBurn } from '../build/BankJetton/tact_BankJetton';
 import { BankJettonWallet, JettonTransfer } from '../build/BankJetton/tact_BankJettonWallet';
 // import '@ton-community/test-utils';
 import '@ton/test-utils';
-import { buildOnchainMetadata } from "../utils/jetton-helpers";
-
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
 
 describe('BNK jetton test', () => {
     let blockchain: Blockchain;
@@ -15,10 +14,10 @@ describe('BNK jetton test', () => {
     let alice: SandboxContract<TreasuryContract>;
     let bankJetton: SandboxContract<BankJetton>;
     const jettonParams = {
-        name: "BNK jetton",
-        description: "This is description for BNK jetton",
-        symbol: "BNK",
-        image: "https://www.com/BNKjetton.png",
+        name: 'BNK jetton',
+        description: 'This is description for BNK jetton',
+        symbol: 'BNK',
+        image: 'https://www.com/BNKjetton.png',
         //uri: TODO - to show in ARCWallet
     };
 
@@ -27,7 +26,9 @@ describe('BNK jetton test', () => {
         owner = await blockchain.treasury('owner');
         alice = await blockchain.treasury('alice');
         // const jetton_content: Cell = beginCell().endCell();
-        bankJetton = blockchain.openContract(await BankJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
+        bankJetton = blockchain.openContract(
+            await BankJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)),
+        );
         const deployResult = await bankJetton.send(
             owner.getSender(),
             {
@@ -131,31 +132,31 @@ describe('BNK jetton test', () => {
             forward_ton_amount: 0n,
             forward_payload: beginCell().endCell(),
         };
-        const transfterResult = await aliceJettonContract.send(
+        const transferResult = await aliceJettonContract.send(
             alice.getSender(),
             {
                 value: toNano('1'),
             },
             jettonTransfer,
         );
-        //printTransactionFees(transfterResult.transactions);
+        //printTransactionFees(transferResult.transactions);
 
         // Check that Alice send JettonTransfer msg to her jetton wallet
-        expect(transfterResult.transactions).toHaveTransaction({
+        expect(transferResult.transactions).toHaveTransaction({
             from: alice.address,
             to: aliceWalletAddress,
             success: true,
         });
 
         // Check that Alice's jetton wallet send JettonInternalTransfer msg to Bob's jetton wallet
-        expect(transfterResult.transactions).toHaveTransaction({
+        expect(transferResult.transactions).toHaveTransaction({
             from: aliceWalletAddress,
             to: bobWalletAddress,
             success: true,
         });
 
         // Check that Bob's jetton wallet send JettonExcesses msg to Bob
-        expect(transfterResult.transactions).toHaveTransaction({
+        expect(transferResult.transactions).toHaveTransaction({
             from: bobWalletAddress,
             to: bob.address,
             success: true,
@@ -228,10 +229,8 @@ describe('BNK jetton test', () => {
     });
 
     it('get token data ', async () => {
-        const jettondata = await bankJetton.getGetJettonData(); 
+        const jettondata = await bankJetton.getGetJettonData();
 
         // expect(jettondata).toEqual(jettonParams);
-
-     
     });
 });

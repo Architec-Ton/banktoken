@@ -29,6 +29,7 @@ contract ArcJetton with JettonMaster, Deployable {
     }
 
     receive("Mint:1") {
+        dump("Mint1");
         let ctx: Context = context();
         let msg: JettonMint = JettonMint{
             origin: ctx.sender,

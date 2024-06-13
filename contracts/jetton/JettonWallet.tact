@@ -72,6 +72,7 @@ trait JettonWallet {
 
     // @dev  JettonTransfer is send from the owner of the jetton wallet to the jetton wallet itself to transfer jettons to another user
     receive(msg: JettonTransfer) {
+        dump(msg.forward_ton_amount);
         let ctx: Context = context();
         self.balance = self.balance - msg.amount;
         require(self.balance >= 0, "JettonWallet: Not enough jettons to transfer");
@@ -91,6 +92,7 @@ trait JettonWallet {
 
     // @dev  JettonInternalTransfer is send from the jetton master or jetton wallet to the jetton wallet itself to transfer jettons to this jetton wallet
     receive(msg: JettonInternalTransfer) {
+        dump(msg.forward_ton_amount);
         let ctx: Context = context();
         self.balance = self.balance + msg.amount;
         require(self.balance >= 0, "JettonWallet: Not allow negative balance after internal transfer");
@@ -142,6 +144,7 @@ trait JettonWallet {
     // @dev  _internal_transfer_notification will send notification to the owner of the jetton wallet
     virtual inline fun _internal_transfer_notification(ctx: Context, msg: JettonInternalTransfer) {
         if (msg.forward_ton_amount > 0) {
+            dump("_internal_transfer_notification");
             send(SendParameters{
                 to: self.owner,
                 value: msg.forward_ton_amount,
