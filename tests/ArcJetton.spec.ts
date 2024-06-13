@@ -1,6 +1,6 @@
 import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
 //'@ton-community/sandbox';
-import { Cell, beginCell, toNano } from '@ton/core';
+import { Cell, beginCell, toNano, BitReader } from '@ton/core';
 // import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
 import { ArcJetton, JettonBurn } from '../build/ArcJetton/tact_ArcJetton';
 // wrappers/JettonExample_ArcJetton';
@@ -9,6 +9,12 @@ import { ArcJettonWallet, JettonTransfer } from '../build/ArcJetton/tact_ArcJett
 // import '@ton-community/test-utils';
 import '@ton/test-utils';
 import { buildOnchainMetadata } from "../utils/jetton-helpers";
+import { isObject } from 'node:util';
+import { deserialize } from 'node:v8';
+import { deserializeBoc } from '@ton/core/dist/boc/cell/serialization';
+import { parseDict } from '@ton/core/dist/dict/parseDict';
+import { base64Decode } from '@ton/sandbox/dist/utils/base64';
+import { sha256 } from '@ton/crypto';
 
 describe('ARC jetton test', () => {
     let blockchain: Blockchain;
@@ -228,12 +234,47 @@ describe('ARC jetton test', () => {
     });
 
     it('get token data ', async () => {
+        const getKeys = async () => {
+            const metadataKeys = new Map<bigint, string>()
+            const metadata = ['name', 'description', 'symbol', 'image']
+
+            for (let i of metadata) {
+                const sha256View = await sha256(i)
+                let b = 0n, c = 1n << 248n
+                for (let byte of sha256View) {
+                    b += BigInt(byte) * c
+                    c /= 256n
+                }
+                metadataKeys.set(b, i)
+            }
+
+            return metadataKeys;
+        }
+
         const jettondata = await ARCJetton.getGetJettonData();
 
-        // expect(jettondata.jetton_content.toString()).toEqual(jettonParams);
-        // // expect(jettondata.symbol).toEqual(jettonParams.symbol);
-        // // expect(jettondata.image).toEqual(jettonParams.image);
+        let totalSupply = jettondata.total_supply
+        let mintable = jettondata.mintable
+        let adminAddress = jettondata.admin_address
+        let cellJettonContent = jettondata.jetton_content
+        let jettonWalletCode = jettondata.jetton_wallet_code
 
-     
+        const hasMap = parseDict(cellJettonContent.refs[0].beginParse(), 256, (src) => src)
+        const deserializeHashMap = new Map<string, string>()
+        const metadataKeys = await getKeys()
+
+        for (let [intKey, stringKey] of metadataKeys) {
+            const value = hasMap.get(intKey).loadStringTail().split('\x00')[1]
+            deserializeHashMap.set(stringKey, value)
+        }
+
+        const jettonContent = {
+            name: deserializeHashMap.get('name'),
+            description: deserializeHashMap.get('description'),
+            symbol: deserializeHashMap.get('symbol'),
+            image: deserializeHashMap.get('image')
+        }
+
+        expect(jettonContent).toEqual(jettonParams);
     });
 });
