@@ -8,7 +8,7 @@ import { BankJettonWallet, JettonTransfer } from '../build/BankJetton/tact_BankJ
 import '@ton/test-utils';
 
 
-describe('NFTExample', () => {
+describe('ARC jetton test', () => {
     let blockchain: Blockchain;
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;

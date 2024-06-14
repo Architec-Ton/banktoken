@@ -100,12 +100,12 @@ contract StakeStorage with  Storage {
     empty: Bool = true;
 
 
-    init(owner: Address) {
+    init(_owner: Address, _factory:Address) {
         
         self.previousCell = newAddress(0,0);
         self.nextCell =  newAddress(0,0);
-        self.factory = context().sender;
-        self.owner = owner;
+        self.factory = _factory; 
+        self.owner = _owner;
     }
 
     receive(msg: Add) {

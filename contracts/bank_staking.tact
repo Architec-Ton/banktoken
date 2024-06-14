@@ -4,7 +4,7 @@ import "./imports/message.tact";
 import "./stake_storage.tact";
 
 contract BankStaking with Deployable {
-    jettonAddress: Address?;
+    jettonAddress: Address;
     owner: Address;
     index: Int as uint32 = 0;
     stake_record: map<Int, StakeRecord>;
@@ -20,10 +20,10 @@ contract BankStaking with Deployable {
     // get fun get_jetton_root(): Address{}
     // InitOf vs Address: Which one has lowest storage cost? 
 
-    init(_jettonAddress: Address, _parameter: Int){
+    init( _owner:Address, _jettonAddress: Address, _parameter: Int){
         self.jettonAddress = _jettonAddress;
         self.parameter = _parameter;
-        self.owner = context().sender;
+        self.owner = _owner;//context().sender;
         self.start_time = now();
         self.firstCell = newAddress(0,0);
         self.lastCell = newAddress(0,0);
@@ -32,7 +32,7 @@ contract BankStaking with Deployable {
     // The notification for the Jetton Token contract noification(when current address receive the token will get the notification)
     receive(stake: JettonTransferNotification){
         require(context().value >= ton("0.1"), "not enough value");
-        let stakeInit: StateInit = initOf StakeStorage(context().sender);
+        let stakeInit: StateInit = initOf StakeStorage(self.owner, self.jettonAddress);
         // init iterator if need
         if (self.firstCell ==  newAddress(0, 0)) {self.firstCell = contractAddress(stakeInit);}
         if (self.lastCell ==  newAddress(0, 0)) {self.lastCell = contractAddress(stakeInit);}
@@ -47,7 +47,9 @@ contract BankStaking with Deployable {
                         amount:  stake.amount, //Int as uint32;
                         previousCell: self.lastCell, // Address;
                         nextCell: self.firstCell // Address;
-                }.toCell()
+                }.toCell(),
+                code: stakeInit.code,
+                data: stakeInit.data
         });
         //update iterator
 
@@ -93,22 +95,22 @@ contract BankStaking with Deployable {
     }
 
     // To get the ratio of a user in a on-chain ways
-    receive(msg: GetWeighted){
-        let ctx: Context = context();
-        let user_score: Int = self.score_list.get(msg.applied_user_address)!!;
-        require(user_score > 0, "no Record");
-        send(SendParameters{
-                to: ctx.sender,
-                value: 0,
-                mode: (SendRemainingValue + SendIgnoreErrors),
-                bounce: true,
-                body: PassScoreToRoundContract{
-                    checked_address: msg.applied_user_address, // 0xe5fd7f29
-                    return_score: user_score
-                }.toCell()
-            }
-        );
-    }
+    // receive(msg: GetWeighted){
+    //     let ctx: Context = context();
+    //     let user_score: Int = self.score_list.get(msg.applied_user_address);
+    //     require(user_score > 0, "no Record");
+    //     send(SendParameters{
+    //             to: ctx.sender,
+    //             value: 0,
+    //             mode: (SendRemainingValue + SendIgnoreErrors),
+    //             bounce: true,
+    //             body: PassScoreToRoundContract{
+    //                 checked_address: msg.applied_user_address, // 0xe5fd7f29
+    //                 return_score: user_score
+    //             }.toCell()
+    //         }
+    //     );
+    // }
 
     // receive(msg: AdminExecute) {}
 
@@ -122,7 +124,7 @@ contract BankStaking with Deployable {
         require(stake_record.jettonStakeAmount > 0, "don't have value");
         self.stake_record.set(msg.index_id, null);
         send(SendParameters{
-                to: self.jettonAddress!!,
+                to: self.jettonAddress,
                 value: 0,
                 mode: (SendRemainingValue + SendIgnoreErrors),
                 bounce: false, // 0x7362d09c - notify new owner
@@ -173,6 +175,14 @@ contract BankStaking with Deployable {
     // get fun get_ratio_of_stake_3(StakeTokenAmount: Int): Int {
     //     return self.score_function(StakeTokenAmount) * 100 / self.total_score / 100;
     // }
+
+    get fun calculate_stake_address(_owner: Address, _factory: Address): Address {
+        
+        return contractAddress(initOf StakeStorage(_owner, _factory));
+    }
+    
 }
 
+
+        
 
