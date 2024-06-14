@@ -16,7 +16,7 @@ describe('BankStaking', () => {
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;
     let bankJetton: SandboxContract<BJ.BankJetton>;
-
+    let parameter = 1n;
     let ARCJetton: SandboxContract<AJ.ArcJetton>;
 
     const BNKjettonParams = {
@@ -79,7 +79,7 @@ describe('BankStaking', () => {
             success: true,
         });
 
-        bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, 1n));
+        bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, parameter));
 
         const deployResultBS = await bankStaking.send(
             deployer.getSender(),
@@ -141,7 +141,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankStaking.address);
+        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
         console.log(
             'alice.address ',
             alice.address,
@@ -160,7 +160,6 @@ describe('BankStaking', () => {
         //     to: bankStaking.address,
         //     success: true,
         // });
-
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
         const amountTime = await stakeStorage.getAmountTime();
