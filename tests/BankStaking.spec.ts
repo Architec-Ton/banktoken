@@ -84,7 +84,7 @@ describe('BankStaking', () => {
         const deployResultBS = await bankStaking.send(
             deployer.getSender(),
             {
-                value: toNano('0.05'),
+                value: toNano('10'),
             },
             {
                 $$type: 'Deploy',
@@ -104,7 +104,7 @@ describe('BankStaking', () => {
         const mintyResult = await bankJetton.send(
             alice.getSender(),
             {
-                value: toNano('1'),
+                value: toNano('10'),
             },
             'Mint:1',
         );
@@ -164,6 +164,6 @@ describe('BankStaking', () => {
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
         const amountTime = await stakeStorage.getAmountTime();
 
-        expect(amountTime.amount).toEqual(toNano('1'));
+        expect(amountTime.amount).toEqual(1n);
     });
 });

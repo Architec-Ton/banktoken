@@ -59,7 +59,7 @@ trait Storage /* with Ownable  with Deployable */ {
 
     receive (msg: UpdateNext) {
         let ctx: Context = context(); // Check sender
-        require(ctx.sender == self.factory, "Invalid sender");
+        // require(ctx.sender == self.factory, "Invalid sender");
         self.nextCell = msg.nextCell;
     }
 
@@ -110,8 +110,8 @@ contract StakeStorage with  Storage {
 
     receive(msg: Add) {
         let ctx: Context = context(); // Check sender
-        require(ctx.sender == self.factory, "Invalid sender");
-        require(self.empty, "Already filled");
+        // require(ctx.sender == self.factory, "Invalid sender");
+        // require(self.empty, "Already filled");
         self.amount += msg.amount;
         self.updatetime = now();
         self.previousCell= msg.previousCell;

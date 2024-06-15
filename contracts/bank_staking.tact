@@ -51,17 +51,17 @@ contract BankStaking with Deployable {
                 code: stakeInit.code,
                 data: stakeInit.data
         });
-        //update iterator
-
-        send(SendParameters{
-                to: self.lastCell, 
-                value: 0,
-                mode: SendRemainingValue, 
-                bounce: false,
-                body:UpdateNext {
-                    nextCell: contractAddress(stakeInit) // Address;
-                }.toCell()
-        });
+        
+        //TODO update iterator (broks contract)
+        // send(SendParameters{
+        //         to: self.lastCell, 
+        //         value: 1,
+        //         mode: SendRemainingValue , /* + SendIgnoreErrors */
+        //         bounce: false,
+        //         body:UpdateNext {
+        //             nextCell: contractAddress(stakeInit) // Address;
+        //         }.toCell()
+        // });
         self.lastCell = contractAddress(stakeInit);
 
         // Check the sender is from the Jetton Wallet
