@@ -1,20 +1,12 @@
-import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
-//'@ton-community/sandbox';
-import { Cell, beginCell, toNano, BitReader } from '@ton/core';
-// import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
-import { ArcJetton, JettonBurn } from '../build/ArcJetton/tact_ArcJetton';
-// wrappers/JettonExample_ArcJetton';
-import { ArcJettonWallet, JettonTransfer } from '../build/ArcJetton/tact_ArcJettonWallet';
-//../wrappers/JettonExample_ArcJettonWallet';
-// import '@ton-community/test-utils';
+import {ArcJetton, JettonBurn} from '../build/ArcJetton/tact_ArcJetton';
+import {ArcJettonWallet, JettonTransfer} from '../build/ArcJetton/tact_ArcJettonWallet';
+import {buildOnchainMetadata} from '../utils/jetton-helpers';
+
+import {beginCell, toNano} from '@ton/core';
+import {Blockchain, SandboxContract, TreasuryContract} from '@ton/sandbox';
 import '@ton/test-utils';
-import { buildOnchainMetadata } from '../utils/jetton-helpers';
-import { isObject } from 'node:util';
-import { deserialize } from 'node:v8';
-import { deserializeBoc } from '@ton/core/dist/boc/cell/serialization';
-import { parseDict } from '@ton/core/dist/dict/parseDict';
-import { base64Decode } from '@ton/sandbox/dist/utils/base64';
-import { sha256 } from '@ton/crypto';
+import {sha256} from '@ton/crypto';
+import {parseDict} from '@ton/core/dist/dict/parseDict';
 
 describe('ARC jetton test', () => {
     let blockchain: Blockchain;
@@ -94,7 +86,7 @@ describe('ARC jetton test', () => {
         });
 
         // Check that Alice's jetton wallet balance is 1
-        const aliceJettonContract = blockchain.openContract(await ArcJettonWallet.fromAddress(aliceWalletAddress));
+        const aliceJettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(aliceWalletAddress));
         const aliceBalanceAfter = (await aliceJettonContract.getGetWalletData()).balance;
         expect(aliceBalanceAfter).toEqual(0n + 1000000000n);
     });
@@ -111,7 +103,7 @@ describe('ARC jetton test', () => {
         // Alice's jetton wallet address
         const aliceWalletAddress = await ARCJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
-        const aliceJettonContract = blockchain.openContract(await ArcJettonWallet.fromAddress(aliceWalletAddress));
+        const aliceJettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(aliceWalletAddress));
 
         // Mint 1 token to Bob first to build his jetton wallet
         const bob = await blockchain.treasury('bob');
@@ -125,7 +117,7 @@ describe('ARC jetton test', () => {
         // Bob's jetton wallet address
         const bobWalletAddress = await ARCJetton.getGetWalletAddress(bob.address);
         // Bob's jetton wallet
-        const bobJettonContract = blockchain.openContract(await ArcJettonWallet.fromAddress(bobWalletAddress));
+        const bobJettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(bobWalletAddress));
         const bobBalanceBefore = (await bobJettonContract.getGetWalletData()).balance;
 
         // Alice transfer 1 token to Bob

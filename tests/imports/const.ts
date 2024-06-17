@@ -1,6 +1,6 @@
-export const SUBWALLET_ID = 239;
+export const SUBWALLET_ID = 4269;
 
-export const DEFAULT_TIMEOUT = 128;
+export const DEFAULT_TIMEOUT = 60 * 60;
 
 export enum OP {
     InternalTransfer = 0xae42e5a4

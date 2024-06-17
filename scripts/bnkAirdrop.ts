@@ -1,5 +1,5 @@
 import {maxQueryId} from "../tests/imports/const";
-import {storeJettonTransfer} from "../build/ArcJetton/tact_ArcJetton";
+import {storeJettonTransfer} from "../build/BankJetton/tact_BankJetton";
 import {HLWSend} from "../utils/HLWv3-helpers";
 import {getJettonTransferBuilder} from "../utils/jetton-helpers";
 import {HighloadQueryId} from "../wrappers/HighloadQueryId";

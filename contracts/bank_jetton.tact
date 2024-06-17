@@ -19,11 +19,9 @@ contract BankJettonWallet with JettonWallet {
 
 contract BankJetton with JettonMaster, Deployable {
     total_supply: Int as coins = 0;
-    max_supply: Int as coins = 3_000_000;
     mintable: Bool = true;
     owner: Address;
     jetton_content: Cell;
-    
 
     init(owner: Address, jetton_content: Cell){
         self.owner = owner;
@@ -33,12 +31,12 @@ contract BankJetton with JettonMaster, Deployable {
     receive("Mint:1") {
         let ctx: Context = context();
         let msg: JettonMint = JettonMint{
-            origin: ctx.sender,
-            receiver: ctx.sender,
-            amount: ton("1"),
-            custom_payload: emptyCell(),
-            forward_ton_amount: 0,
-            forward_payload: emptySlice()
+        origin: ctx.sender,
+        receiver: ctx.sender,
+        amount: ton("1"),
+        custom_payload: emptyCell(),
+        forward_ton_amount: 0,
+        forward_payload: emptySlice()
         };
         self._mint_validate(ctx, msg);
         self._mint(ctx, msg);
@@ -46,7 +44,6 @@ contract BankJetton with JettonMaster, Deployable {
 
     override inline fun _mint_validate(ctx: Context, msg: JettonMint) {
         require(self.mintable, "JettonMaster: Jetton is not mintable");
-        require(self.total_supply + msg.amount <= self.max_supply, "Max supply exceeded");
     }
 
     override inline fun calculate_jetton_wallet_init(owner_address: Address): StateInit {

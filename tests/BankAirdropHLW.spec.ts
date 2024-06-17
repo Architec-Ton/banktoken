@@ -4,8 +4,8 @@ import {DEFAULT_TIMEOUT, SUBWALLET_ID, maxQueryId} from "./imports/const";
 import {getSecureRandomBytes, KeyPair, keyPairFromSeed} from "ton-crypto";
 import {HighloadWalletV3} from "../wrappers/HighloadWalletV3";
 import {HighloadQueryId} from "../wrappers/HighloadQueryId";
-import {ArcJettonWallet} from "../build/ArcJetton/tact_ArcJettonWallet";
-import {ArcJetton, JettonTransfer, storeJettonTransfer} from '../build/ArcJetton/tact_ArcJetton';
+import {BankJettonWallet} from "../build/BankJetton/tact_BankJettonWallet";
+import {BankJetton, JettonTransfer, storeJettonTransfer} from '../build/BankJetton/tact_BankJetton';
 
 import {beginCell, Cell, OutActionSendMsg, SendMode, toNano, internal as internal_relaxed} from '@ton/core';
 import {compile} from "@ton/blueprint";
@@ -23,14 +23,14 @@ describe('ARC Airdrop test', () => {
     let code: Cell;
     let highloadWalletV3: SandboxContract<HighloadWalletV3>;
 
-    let ARCJetton: SandboxContract<ArcJetton>;
-    let HLWv3JettonContract: SandboxContract<ArcJettonWallet>;
+    let BNKJetton: SandboxContract<BankJetton>;
+    let HLWv3JettonContract: SandboxContract<BankJettonWallet>;
 
     const jettonParams = {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/ARCjetton.png"
+        image: "https://www.com/BankJetton.png"
     };
 
     beforeEach(async () => {
@@ -61,8 +61,8 @@ describe('ARC Airdrop test', () => {
         });
 
         owner = await blockchain.treasury('owner', {balance: toNano(10000)});
-        ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
-        const deployJettonResult = await ARCJetton.send(
+        BNKJetton = blockchain.openContract(await BankJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
+        const deployJettonResult = await BNKJetton.send(
             owner.getSender(),
             {
                 value: toNano('1000'),
@@ -75,13 +75,13 @@ describe('ARC Airdrop test', () => {
 
         expect(deployJettonResult.transactions).toHaveTransaction({
             from: owner.address,
-            to: ARCJetton.address,
+            to: BNKJetton.address,
             deploy: true,
             success: true,
         });
 
-        const banks = 100000
-        const mintXHundred = await ARCJetton.send(
+        const banks = 3000000
+        const mintXHundred = await BNKJetton.send(
             owner.getSender(),
             {
                 value: toNano('1'),
@@ -90,7 +90,7 @@ describe('ARC Airdrop test', () => {
                 $$type: 'JettonMint',
                 origin: owner.address,
                 receiver: owner.address,
-                amount: toNano(banks * 100),
+                amount: toNano(banks),
                 custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
                 forward_payload: beginCell().endCell(),
@@ -99,22 +99,22 @@ describe('ARC Airdrop test', () => {
 
         expect(mintXHundred.transactions).toHaveTransaction({
             from: owner.address,
-            to: ARCJetton.address,
+            to: BNKJetton.address,
             success: true,
         });
 
-        const jettonData = await ARCJetton.getGetJettonData()
-        expect(jettonData.total_supply).toEqual(toNano(banks * 100))
+        const jettonData = await BNKJetton.getGetJettonData()
+        expect(jettonData.total_supply).toEqual(toNano(banks))
 
-        const ownerJettonWallet = await ARCJetton.getGetWalletAddress(owner.address)
-        const ownerJettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(ownerJettonWallet));
+        const ownerJettonWallet = await BNKJetton.getGetWalletAddress(owner.address)
+        const ownerJettonContract = blockchain.openContract(BankJettonWallet.fromAddress(ownerJettonWallet));
         const ownerARCBalance = (await ownerJettonContract.getGetWalletData()).balance;
-        expect(ownerARCBalance).toEqual(toNano(banks * 100));
+        expect(ownerARCBalance).toEqual(toNano(banks));
 
         const jettonTransfer: JettonTransfer = {
             $$type: 'JettonTransfer',
             query_id: 0n,
-            amount: toNano(banks * 100),
+            amount: toNano(2700000),
             destination: highloadWalletV3.address,
             response_destination: highloadWalletV3.address,
             custom_payload: beginCell().endCell(),
@@ -130,15 +130,17 @@ describe('ARC Airdrop test', () => {
             jettonTransfer
         )
 
-        const HLWv3JettonWallet = await ARCJetton.getGetWalletAddress(highloadWalletV3.address)
-        HLWv3JettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(HLWv3JettonWallet));
+        const HLWv3JettonWallet = await BNKJetton.getGetWalletAddress(highloadWalletV3.address)
+        HLWv3JettonContract = blockchain.openContract(BankJettonWallet.fromAddress(HLWv3JettonWallet));
 
         const HLWv3BalanceAfter = (await HLWv3JettonContract.getGetWalletData()).balance;
-        expect(HLWv3BalanceAfter).toEqual(toNano(banks * 100));
+        expect(HLWv3BalanceAfter).toEqual(toNano(2700000));
+
+        // maybe change owner to null address
     });
 
     it('should airdrop to 254 addresses', async () => {
-        const oldJettonData = await ARCJetton.getGetJettonData()
+        const oldJettonData = await BNKJetton.getGetJettonData()
 
         const curQuery = new HighloadQueryId();
 
@@ -179,27 +181,27 @@ describe('ARC Airdrop test', () => {
                 body: outMsgs[i].outMsg.body
             })
 
-            const walletAddress = await ARCJetton.getGetWalletAddress(holdersAddresses[i]);
+            const walletAddress = await BNKJetton.getGetWalletAddress(holdersAddresses[i]);
             expect(res.transactions).toHaveTransaction({
                 from: HLWv3JettonContract.address,
                 to: walletAddress,
                 success: true,
             });
 
-            const jettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(walletAddress));
+            const jettonContract = blockchain.openContract(BankJettonWallet.fromAddress(walletAddress));
             const balanceAfter = (await jettonContract.getGetWalletData()).balance;
             expect(balanceAfter).toEqual(toNano(amount));
         }
 
         expect(await highloadWalletV3.getProcessed(curQuery)).toBe(true);
 
-        const curJettonData = await ARCJetton.getGetJettonData()
+        const curJettonData = await BNKJetton.getGetJettonData()
         expect(oldJettonData.total_supply).toEqual(curJettonData.total_supply)
     });
 
 
     it('should airdrop to 2024 addresses', async () => {
-        const oldJettonData = await ARCJetton.getGetJettonData()
+        const oldJettonData = await BNKJetton.getGetJettonData()
 
         let bitnumber = 0n
         let shift = 0n
@@ -249,14 +251,14 @@ describe('ARC Airdrop test', () => {
         }
 
         for (let {address, amount} of recipients) {
-            const walletAddress = await ARCJetton.getGetWalletAddress(address);
-            const jettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(walletAddress));
+            const walletAddress = await BNKJetton.getGetWalletAddress(address);
+            const jettonContract = blockchain.openContract(BankJettonWallet.fromAddress(walletAddress));
             const balanceAfter = (await jettonContract.getGetWalletData()).balance;
             expect(balanceAfter).toEqual(toNano(amount));
         }
 
         console.log("Shift: ", shift, "\tBitnumber: ", bitnumber)
-        const curJettonData = await ARCJetton.getGetJettonData()
+        const curJettonData = await BNKJetton.getGetJettonData()
         expect(oldJettonData.total_supply).toEqual(curJettonData.total_supply)
     })
 });

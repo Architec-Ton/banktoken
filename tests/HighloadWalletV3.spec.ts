@@ -201,7 +201,7 @@ describe('HighloadWalletV3', () => {
         await shouldRejectWith(highloadWalletV3.sendExternalMessage(
             keyPair.secretKey,
             {
-                createdAt: 1000 - getRandomInt(curTimeout + 1, curTimeout + 200),
+                createdAt: 10000 - getRandomInt(curTimeout + 1, curTimeout + 200),
                 query_id: queryId,
                 message,
                 mode: 128,
@@ -375,7 +375,7 @@ describe('HighloadWalletV3', () => {
         });
 
         expect(await highloadWalletV3.getProcessed(queryId)).toBe(true);
-        blockchain.now = 1000 + 260;
+        blockchain.now = 1000 + 10600;
         // get_is_processed should account for query expiery
         expect(await highloadWalletV3.getProcessed(queryId)).toBe(false);
 
@@ -387,7 +387,7 @@ describe('HighloadWalletV3', () => {
         const testResult2 = await highloadWalletV3.sendExternalMessage(
             keyPair.secretKey,
             {
-                createdAt: 1200,
+                createdAt: 11600,
                 query_id: newQueryId,
                 message,
                 mode: 128,
