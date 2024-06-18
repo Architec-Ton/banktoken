@@ -1,37 +1,7 @@
 // import "@stdlib/deploy";
 // import "@stdlib/Ownable";
 // import "./storage.tact";
-
-
-struct AmountTime {
-    stakedAmount: Int;
-    time: Int;
-    calculatedAmount:Int;
-}
-
-struct PrevNextCells {
-    previous: Address;
-    next: Address;
-}
-
-message Add {
-    queryId: Int as uint64;
-    amount: Int as uint32;
-    previousCell: Address;
-    nextCell: Address;
-}
-
-message Sub {
-    queryId: Int as uint64;
-    amount: Int as uint32;
-    date: Int as uint32;
-}
-
-message UpdateNext {
-    nextCell: Address;
-}
-
-
+import "./imports/message.tact"; 
 
 trait Storage /* with Ownable  with Deployable */ {
     
@@ -105,20 +75,21 @@ contract StakeStorage with  Storage {
         self.owner = _owner;
     }
 
-    receive(msg: Add) {
+    receive(_msg: Add) {
         let ctx: Context = context(); // Check sender
         // require(ctx.sender == self.factory, "Invalid sender");
         // require(self.empty, "Already filled");
-        self.amount += msg.amount;
+        self.amount += _msg.amount;
         self.updatetime = now();
-        self.previousCell= msg.previousCell;
-        self.nextCell = msg.nextCell;
+        self.previousCell= _msg.previousCell;
+        self.nextCell = _msg.nextCell;
         self.empty = false;
     }
 
-    receive ("GetAmountTime") {
+    receive (_msg: GetWeighted) {
         let ctx: Context = context();
-        let ap: AmountTime =  AmountTime{stakedAmount: self.amount,
+        let ap: AmountTime =  AmountTime{for: _msg.applied_user_address,
+                                        stakedAmount: self.amount,
                                         time: self.updatetime,
                                         calculatedAmount: self.score_function()};
         send(SendParameters{
@@ -129,9 +100,11 @@ contract StakeStorage with  Storage {
                 body:ap.toCell()
             }
         );
+        self.updatetime = now();
     }
-    get fun amountTime(): AmountTime {
-        return   AmountTime{stakedAmount: self.amount, 
+    get fun amountTime(_for: Address): AmountTime {
+        return   AmountTime{for: _for,
+                            stakedAmount: self.amount, 
                             time: self.updatetime,
                             calculatedAmount: self.score_function()};
     }

@@ -1,4 +1,6 @@
 import "@stdlib/deploy";
+// import "@stdlib/ownable";
+
 import "./jetton/JettonMaster.tact";
 import "./jetton/JettonWallet.tact";
 
@@ -17,7 +19,7 @@ contract BankJettonWallet with JettonWallet {
     }
 }
 
-contract BankJetton with JettonMaster, Deployable {
+contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
     total_supply: Int as coins = 0;
     mintable: Bool = true;
     owner: Address;

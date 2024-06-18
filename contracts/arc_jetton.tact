@@ -1,6 +1,8 @@
 import "@stdlib/deploy";
 import "./jetton/JettonMaster.tact";
 import "./jetton/JettonWallet.tact";
+import "./imports/message.tact"; 
+import "./stake_storage.tact";
 
 contract ArcJettonWallet with JettonWallet {
     balance: Int as coins = 0;
@@ -17,23 +19,43 @@ contract ArcJettonWallet with JettonWallet {
     }
 }
 
-contract ArcJetton with JettonMaster, Deployable {
+
+
+contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
     total_supply: Int as coins = 0;
     mintable: Bool = true;
     owner: Address;
+    BNKjetton: Address;
     jetton_content: Cell;
 
-    init(owner: Address, jetton_content: Cell){
-        self.owner = owner;
-        self.jetton_content = jetton_content;
+    init(_owner: Address, _BNKjetton: Address, _jetton_content: Cell){
+        self.owner = _owner;
+        self.BNKjetton = _BNKjetton;
+        self.jetton_content = _jetton_content;
     }
 
-    receive("Mint:1") {
+    
+    receive("Claim") {
         let ctx: Context = context();
+        let stakingAddress:Address = self.calculate_stake_address(ctx.sender,self.BNKjetton);
+        let msg: GetWeighted= GetWeighted{applied_user_address: ctx.sender};
+        send(SendParameters{
+                to: stakingAddress,
+                value: 0,
+                mode: (SendRemainingValue + SendIgnoreErrors),
+                bounce: true,
+                body:msg.toCell(),
+            });
+    }
+    // answer for Claim
+    receive(_msg: Mint) {
+        let ctx: Context = context();
+        let stakingAddress:Address = self.calculate_stake_address(_msg.to ,self.BNKjetton);
+        // require(ctx.sender == stakingAddress,  "Not allowed sender");
         let msg: JettonMint = JettonMint{
-            origin: ctx.sender,
-            receiver: ctx.sender,
-            amount: ton("1"),
+            origin: _msg.to,
+            receiver: _msg.to,
+            amount: _msg.amount,
             custom_payload: emptyCell(),
             forward_ton_amount: 0,
             forward_payload: emptySlice()
@@ -50,5 +72,9 @@ contract ArcJetton with JettonMaster, Deployable {
         return initOf ArcJettonWallet(owner_address, myAddress());
     }
 
-
+    get fun calculate_stake_address(_owner: Address, _factory: Address): Address {
+        
+        return contractAddress(initOf StakeStorage(_owner, _factory));
+    }
+    
 }
