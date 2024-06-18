@@ -4,8 +4,9 @@
 
 
 struct AmountTime {
-    amount: Int;
+    stakedAmount: Int;
     time: Int;
+    calculatedAmount:Int;
 }
 
 struct PrevNextCells {
@@ -80,10 +81,6 @@ trait Storage /* with Ownable  with Deployable */ {
         return PrevNextCells{previous: self.previousCell, next:  self.nextCell};
     }
 
-    
-    get fun amountTime(): AmountTime {
-        return   AmountTime{amount: self.amount, time: self.updatetime};
-    }
 
 
 }
@@ -99,7 +96,7 @@ contract StakeStorage with  Storage {
     owner: Address;
     empty: Bool = true;
 
-
+ 
     init(_owner: Address, _factory:Address) {
         
         self.previousCell = newAddress(0,0);
@@ -119,9 +116,11 @@ contract StakeStorage with  Storage {
         self.empty = false;
     }
 
-    receive ("GetAmountDate") {
+    receive ("GetAmountTime") {
         let ctx: Context = context();
-        let ap: AmountTime =  AmountTime{amount: self.amount, time: self.updatetime};
+        let ap: AmountTime =  AmountTime{stakedAmount: self.amount,
+                                        time: self.updatetime,
+                                        calculatedAmount: self.score_function()};
         send(SendParameters{
                 to: ctx.sender,
                 value: 0,
@@ -131,10 +130,15 @@ contract StakeStorage with  Storage {
             }
         );
     }
+    get fun amountTime(): AmountTime {
+        return   AmountTime{stakedAmount: self.amount, 
+                            time: self.updatetime,
+                            calculatedAmount: self.score_function()};
+    }
 
-    fun score_function(jettonAmount: Int): Int {         
-        return (jettonAmount * pow(10, 18) / self.durationTime() * self.parameter / 86400); 
-        /* TODO  parameter
+    fun score_function(): Int { 
+        let parameter: Int = 0;
+            /*   parameter
             FARM SPEED
             Количество   BNK (Банки)
             Скорость   добычи ARC/DAY
@@ -143,7 +147,14 @@ contract StakeStorage with  Storage {
             100-999 BNK     0.22
             1000-9999 BNK   2.5
             10000   + BNK   30
-    */
+        */
+        if (self.amount < 10) {parameter = 1;} // div with 1000
+        else if (self.amount < 100) {parameter = 11;}
+        else if (self.amount < 1000) {parameter = 220;}
+        else if (self.amount < 10000) {parameter = 2500;}
+        else {parameter = 2500;}
+        return (self.amount * self.durationTime() * self.parameter / 86400000);  // 60sec*60min*24hour*1000 for parameter )
+
     }
 
     fun durationTime(): Int {

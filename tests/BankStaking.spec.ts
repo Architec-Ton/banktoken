@@ -163,7 +163,16 @@ describe('BankStaking', () => {
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
         const amountTime = await stakeStorage.getAmountTime();
+        expect(amountTime.stakedAmount).toEqual(1n);
+        
+        //checking iterator (point to itself now)
+        const pn =  await stakeStorage.getPrevnextcells() 
+        const stakeStorageP = blockchain.openContract(await StakeStorage.fromAddress(pn.previous));
+        const amountTimeP = await stakeStorageP.getAmountTime();
+        expect(amountTimeP.stakedAmount).toEqual(1n);
+        const stakeStorageN = blockchain.openContract(await StakeStorage.fromAddress(pn.next));
+        const amountTimeN = await stakeStorageN.getAmountTime();
+        expect(amountTimeN.stakedAmount).toEqual(1n);
 
-        expect(amountTime.amount).toEqual(1n);
     });
 });
