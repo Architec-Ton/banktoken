@@ -3,6 +3,7 @@ import "@stdlib/deploy";
 
 import "./jetton/JettonMaster.tact";
 import "./jetton/JettonWallet.tact";
+import "./imports/message.tact"; 
 
 contract BankJettonWallet with JettonWallet {
     balance: Int as coins = 0;
@@ -36,6 +37,21 @@ contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
         origin: ctx.sender,
         receiver: ctx.sender,
         amount: ton("1"),
+        custom_payload: emptyCell(),
+        forward_ton_amount: 0,
+        forward_payload: emptySlice()
+        };
+        self._mint_validate(ctx, msg);
+        self._mint(ctx, msg);
+    }
+
+
+    receive(_msg: Mint) {
+        let ctx: Context = context();
+        let msg: JettonMint = JettonMint{
+        origin: _msg.to,
+        receiver:_msg.to,
+        amount: _msg.amount,
         custom_payload: emptyCell(),
         forward_ton_amount: 0,
         forward_payload: emptySlice()
