@@ -4,7 +4,7 @@ import "./imports/message.tact";
 import "./stake_storage.tact";
 
 contract BankStaking with Deployable {
-    jettonAddress: Address;
+    BNKjetton: Address;
     owner: Address;
     index: Int as uint32 = 0;
     stake_record: map<Int, StakeRecord>;

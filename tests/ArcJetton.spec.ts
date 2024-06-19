@@ -97,7 +97,7 @@ describe('ARC jetton test', () => {
 
         expect(deployResult.transactions).toHaveTransaction({
             from: owner.address,
-            to: ARCJetton.address,
+            to: jettonMaster.address,
             deploy: true,
             success: true,
         });
@@ -348,7 +348,7 @@ describe('ARC jetton test', () => {
             return metadataKeys;
         };
 
-        const jettondata = await ARCJetton.getGetJettonData();
+        const jettondata = await jettonMaster.getGetJettonData();
 
         let totalSupply = jettondata.total_supply;
         let mintable = jettondata.mintable;

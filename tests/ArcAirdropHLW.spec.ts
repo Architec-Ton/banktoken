@@ -11,6 +11,7 @@ import {beginCell, Cell, OutActionSendMsg, SendMode, toNano, internal as interna
 import {compile} from "@ton/blueprint";
 import {Blockchain, SandboxContract, TreasuryContract} from '@ton/sandbox';
 import {randomAddress} from "@ton/test-utils";
+import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
 
 import {randomInt} from "node:crypto";
 
@@ -25,12 +26,20 @@ describe('ARC Airdrop test', () => {
 
     let ARCJetton: SandboxContract<ArcJetton>;
     let HLWv3JettonContract: SandboxContract<ArcJettonWallet>;
+    let bankJetton: SandboxContract<BJ.BankJetton>;
 
     const jettonParams = {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
         image: "https://www.com/ARCjetton.png"
+    };
+        
+    const BNKjettonParams = {
+        name: 'BNK jetton',
+        description: 'This is description for BNK jetton',
+        symbol: 'BNK',
+        image: 'https://www.com/BNKjetton.json',
     };
 
     beforeEach(async () => {
@@ -61,7 +70,30 @@ describe('ARC Airdrop test', () => {
         });
 
         owner = await blockchain.treasury('owner', {balance: toNano(10000)});
-        ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
+        bankJetton = blockchain.openContract(
+            await BJ.BankJetton.fromInit(owner.address, buildOnchainMetadata(BNKjettonParams)),
+        );
+        const deployResultBNK = await bankJetton.send(
+            owner.getSender(),
+            {
+                value: toNano('0.05'),
+            },
+            {
+                $$type: 'Deploy',
+                queryId: 0n,
+            },
+        );
+
+        expect(deployResultBNK.transactions).toHaveTransaction({
+            from: owner.address,
+            to: bankJetton.address,
+            deploy: true,
+            success: true,
+        });
+
+
+        
+        ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address, bankJetton.address, buildOnchainMetadata(jettonParams)));
         const deployJettonResult = await ARCJetton.send(
             owner.getSender(),
             {
