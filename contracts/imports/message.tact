@@ -1,3 +1,4 @@
+//bank_staking.tact
 message PassScoreToRoundContract {
     checked_address: Address;
     return_score: Int as uint64;
@@ -14,6 +15,20 @@ struct StakeRecord {
     jettonStakeAmount: Int as coins;
     score: Int as uint128; // TODO: 可以後面刪掉
 }
+
+// stake_storage.tact
+struct AmountTime {
+    for: Address;
+    stakedAmount: Int;
+    time: Int;
+    calculatedAmount:Int;
+}
+
+struct PrevNextCells {
+    previous: Address;
+    next: Address;
+}
+
 // ===== TEP64 Standard: Jetton Messages ===== //
 // message(0xf8a7ea5) TokenTransfer {
 //     query_id: Int as uint64;
@@ -41,7 +56,13 @@ message TransferEvent {
     jetton_amount: Int as coins;
     score: Int as uint128;
 }
+
+message Mint{
+    to: Address;
+    amount: Int; 
+}
 // ================================================================================ //
+// bank_staking.tact
 message AddingJettonAddress {
     this_contract_jettonWallet: Address;
 }
@@ -56,3 +77,29 @@ message GetWeighted {
     // ===== on-chain fetch ===== //
     applied_user_address: Address;
 }
+message Claim {
+    // ===== on-chain fetch ===== //
+    amountTime: AmountTime;
+}
+
+// stake_storage.tact
+message Add {
+    queryId: Int as uint64;
+    amount: Int as uint32;
+    previousCell: Address;
+    nextCell: Address;
+}
+
+message Sub {
+    queryId: Int as uint64;
+    amount: Int as uint32;
+    date: Int as uint32;
+}
+
+message UpdateNext {
+    nextCell: Address;
+}
+
+
+
+

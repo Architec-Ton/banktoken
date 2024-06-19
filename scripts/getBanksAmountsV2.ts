@@ -5,10 +5,8 @@ import { NetworkProvider, sleep } from '@ton/blueprint';
 export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
-    // const address = Address.parse('EQByVJjaA9EM8SzoApOuF0eE2USMNB2kT8ZlMV1TmWLfhgLe');
-    //  const address = Address.parse('EQB8EPrSzysu6wAGH9JF6X2jIOah9wUs-5sHo8oK8afKsvDp');
-     const address = Address.parse('EQBhOhdA8vncTSH3ft2f-Nqj9PTmKTSZMbhkMN8DhFTeJC1g');
-    //const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
+    const address = Address.parse('EQDTS6A4-hL3znSA7WsInBfwi--nD1p_9FJOrszGUTF5fO3y');
+    // const address = Address.parse( args.length > 0 ? args[0] : await ui.input('Crowdsale  address'));
 
     if (!(await provider.isContractDeployed(address))) {
         ui.write(`Error: Contract at address ${address} is not deployed!`);

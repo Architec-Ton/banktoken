@@ -16,7 +16,7 @@ describe('BankStaking', () => {
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;
     let bankJetton: SandboxContract<BJ.BankJetton>;
-
+    let parameter = 1n;
     let ARCJetton: SandboxContract<AJ.ArcJetton>;
 
     const BNKjettonParams = {
@@ -58,8 +58,29 @@ describe('BankStaking', () => {
             success: true,
         });
 
+        bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address));
+
+        const deployResultBS = await bankStaking.send(
+            deployer.getSender(),
+            {
+                value: toNano('10'),
+            },
+            {
+                $$type: 'Deploy',
+                queryId: 0n,
+            },
+        );
+
+        expect(deployResultBS.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: bankStaking.address,
+            deploy: true,
+            success: true,
+        });
         ARCJetton = blockchain.openContract(
-            await AJ.ArcJetton.fromInit(owner.address, buildOnchainMetadata(ARCjettonParams)),
+            await AJ.ArcJetton.fromInit(owner.address, 
+                bankStaking.address, 
+                buildOnchainMetadata(ARCjettonParams)),
         );
         const deployResult = await ARCJetton.send(
             owner.getSender(),
@@ -79,35 +100,23 @@ describe('BankStaking', () => {
             success: true,
         });
 
-        bankStaking = blockchain.openContract(await BankStaking.fromInit(deployer.address, 1n));
-
-        const deployResultBS = await bankStaking.send(
-            deployer.getSender(),
-            {
-                value: toNano('0.05'),
-            },
-            {
-                $$type: 'Deploy',
-                queryId: 0n,
-            },
-        );
-
-        expect(deployResultBS.transactions).toHaveTransaction({
-            from: deployer.address,
-            to: bankStaking.address,
-            deploy: true,
-            success: true,
-        });
     });
     it('stake BNK', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
-        await bankJetton.send(
+        const mintyResult = await bankJetton.send(
             alice.getSender(),
             {
-                value: toNano('1'),
+                value: toNano('10'),
             },
             'Mint:1',
         );
+
+        expect(mintyResult.transactions).toHaveTransaction({
+            from: alice.address,
+            to: bankJetton.address,
+            success: true,
+        });
+
         // Alice's jetton wallet address
         const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
@@ -134,7 +143,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankStaking.address);
+        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
         console.log(
             'alice.address ',
             alice.address,
@@ -154,15 +163,18 @@ describe('BankStaking', () => {
         //     success: true,
         // });
 
-        // expect(transferResult.transactions).toHaveTransaction({
-        //     from: aliceWalletAddress,
-        //     to: bankStaking.address,
-        //     success: true,
-        // });
-
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
-        const amountTime = await stakeStorage.getAmountTime();
+        const amountTime = await stakeStorage.getAmountTime(alice.address);
+        expect(amountTime.stakedAmount).toEqual(1n);
 
-        expect(amountTime.amount).toEqual(toNano('1'));
+        //checking iterator (point to itself now)
+        const pn =  await stakeStorage.getPrevnextcells() 
+        const stakeStorageP = blockchain.openContract(await StakeStorage.fromAddress(pn.previous));
+        const amountTimeP = await stakeStorageP.getAmountTime(alice.address);
+        expect(amountTimeP.stakedAmount).toEqual(1n);
+        const stakeStorageN = blockchain.openContract(await StakeStorage.fromAddress(pn.next));
+        const amountTimeN = await stakeStorageN.getAmountTime(alice.address);
+        expect(amountTimeN.stakedAmount).toEqual(1n);
+
     });
 });
