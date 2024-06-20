@@ -61,6 +61,7 @@ contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
     }
 
     override inline fun _mint_validate(ctx: Context, msg: JettonMint) {
+        require(self.owner == ctx.sender, "JettonMaster: Sender is not a Jetton owner");
         require(self.mintable, "JettonMaster: Jetton is not mintable");
     }
 
