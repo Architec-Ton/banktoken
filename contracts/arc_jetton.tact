@@ -25,40 +25,29 @@ contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
     total_supply: Int as coins = 0;
     mintable: Bool = true;
     owner: Address;
-    BNKjetton: Address;
+    minter: Address;
+    
     jetton_content: Cell;
 
-    init(_owner: Address, _BNKjetton: Address, _jetton_content: Cell){
+    init(_owner: Address, _jetton_content: Cell){
         self.owner = _owner;
-        self.BNKjetton = _BNKjetton;
+        self.minter = _owner;
+        
         self.jetton_content = _jetton_content;
     }
 
-    
-    receive("Claim") {
-        let ctx: Context = context();
-        let stakingAddress:Address = self.calculate_stake_address(ctx.sender,self.BNKjetton);
-        let msg: GetWeighted= GetWeighted{applied_user_address: ctx.sender};
-        send(SendParameters{
-                to: stakingAddress,
-                value: 0,
-                mode: (SendRemainingValue + SendIgnoreErrors),
-                bounce: true,
-                body:msg.toCell(),
-            });
-    }
-    // answer for Claim
+    // todo receive (_msg: ChangeMinter) {}
+
     receive(_msg: Mint) {
         let ctx: Context = context();
-        let stakingAddress:Address = self.calculate_stake_address(_msg.to ,self.BNKjetton);
-        // require(ctx.sender == stakingAddress,  "Not allowed sender");
+        // require (ctx.sender == self.minter, "not right minter");
         let msg: JettonMint = JettonMint{
-            origin: _msg.to,
-            receiver: _msg.to,
-            amount: _msg.amount,
-            custom_payload: emptyCell(),
-            forward_ton_amount: 0,
-            forward_payload: emptySlice()
+        origin: _msg.to,
+        receiver:_msg.to,
+        amount: _msg.amount,
+        custom_payload: emptyCell(),
+        forward_ton_amount: 0,
+        forward_payload: emptySlice()
         };
         self._mint_validate(ctx, msg);
         self._mint(ctx, msg);
@@ -70,11 +59,6 @@ contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
 
     override inline fun calculate_jetton_wallet_init(owner_address: Address): StateInit {
         return initOf ArcJettonWallet(owner_address, myAddress());
-    }
-
-    get fun calculate_stake_address(_owner: Address, _factory: Address): Address {
-        
-        return contractAddress(initOf StakeStorage(_owner, _factory));
     }
     
 }

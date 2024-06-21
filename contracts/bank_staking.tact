@@ -5,6 +5,7 @@ import "./stake_storage.tact";
 
 contract BankStaking with Deployable {
     BNKjetton: Address;
+    ARCjetton: Address;
     owner: Address;
     index: Int as uint32 = 0;
     stake_record: map<Int, StakeRecord>;
@@ -19,8 +20,9 @@ contract BankStaking with Deployable {
     // get fun get_jetton_root(): Address{}
     // InitOf vs Address: Which one has lowest storage cost? 
 
-    init( _owner:Address, _BNKjetton: Address){ //, _ARCjetton: Address
+    init( _owner:Address, _BNKjetton: Address, _ARCjetton:Address){ //, _ARCjetton: Address
         self.BNKjetton = _BNKjetton;
+        self.ARCjetton = _ARCjetton;
         // self.ARCjetton = _ARCjetton;
         self.owner = _owner;//context().sender;
         self.start_time = now();
@@ -32,7 +34,7 @@ contract BankStaking with Deployable {
     receive(stake: JettonTransferNotification){
         dump("JettonTransferNotification");
         require(context().value >= ton("0.1"), "not enough value");
-        let stakeInit: StateInit = initOf StakeStorage(self.owner, self.BNKjetton);
+        let stakeInit: StateInit = initOf StakeStorage(stake.sender, self.BNKjetton);
         // init iterator if need
         if (self.firstCell ==  newAddress(0, 0)) {self.firstCell = contractAddress(stakeInit);}
         if (self.lastCell ==  newAddress(0, 0)) {self.lastCell = contractAddress(stakeInit);}
@@ -70,6 +72,52 @@ contract BankStaking with Deployable {
         // emit(TransferEvent{sender_address: stake.from, jetton_amount: stake.amount, score: score}.toCell());
     }
 
+    receive("Claim") {
+            dump("claim");
+            let ctx: Context = context();
+            let stakingAddress:Address = contractAddress(initOf StakeStorage(ctx.sender,self.BNKjetton));
+            dump(ctx.sender);
+            dump(self.BNKjetton);
+            dump (stakingAddress);
+            let msg: GetWeighted= GetWeighted{applied_user_address: ctx.sender};
+            send(SendParameters{
+                    to: stakingAddress,
+                    value: 0,
+                    mode: (SendRemainingValue /* + SendIgnoreErrors */),
+                    bounce: true,
+                    body:msg.toCell(),
+                });
+        }
+        // answer for Claim
+        receive(_msg: Mint) {
+            dump("mint");
+            let ctx: Context = context();
+            let stakingAddress:Address = contractAddress(initOf StakeStorage(_msg.to ,self.BNKjetton));
+            dump(_msg.to);
+            dump(self.BNKjetton);
+            // require(ctx.sender == stakingAddress,  "Not allowed sender");
+            // let msg: JettonMint = JettonMint{
+            //     origin: _msg.to,
+            //     receiver: _msg.to,
+            //     amount: _msg.amount,
+            //     custom_payload: emptyCell(),
+            //     forward_ton_amount: 1,
+            //     forward_payload: emptySlice()
+            // };
+        
+            let mint: Mint = Mint{
+                to: _msg.to,
+                amount: _msg.amount
+            };
+            send(SendParameters{
+                    to: self.ARCjetton,
+                    value: 0,
+                    mode: (SendRemainingValue /* + SendIgnoreErrors */),
+                    bounce: true,
+                    body:mint.toCell()
+                }
+            );
+        }
 
     receive(msg: Unstake){
         let weight: Int = self.score_list.get(context().sender)!!;

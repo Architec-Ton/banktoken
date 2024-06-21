@@ -51,7 +51,11 @@ describe('ARC jetton test', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1',
+                      {   
+                $$type: 'Mint',
+                to: alice.address, 
+                amount:  toNano('1')
+            }
         );
         //printTransactionFees(mintyResult.transactions);
 
@@ -90,7 +94,11 @@ describe('ARC jetton test', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1',
+                      {   
+                $$type: 'Mint',
+                to: alice.address, 
+                amount: 1n
+            }
         );
         // Alice's jetton wallet address
         const aliceWalletAddress = await jettonMaster.getGetWalletAddress(alice.address);
@@ -104,7 +112,11 @@ describe('ARC jetton test', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1',
+                      {   
+                $$type: 'Mint',
+                to: bob.address, 
+                amount: 1n
+            }
         );
         // Bob's jetton wallet address
         const bobWalletAddress = await jettonMaster.getGetWalletAddress(bob.address);
@@ -165,7 +177,11 @@ describe('ARC jetton test', () => {
             {
                 value: toNano('1'),
             },
-            'Mint:1',
+                      {   
+                $$type: 'Mint',
+                to: alice.address, 
+                amount: 1n
+            }
         );
 
         const jettonBurn: JettonBurn = {

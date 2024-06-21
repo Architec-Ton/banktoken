@@ -31,23 +31,14 @@ contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
         self.jetton_content = jetton_content;
     }
 
-    receive("Mint:1") {
-        let ctx: Context = context();
-        let msg: JettonMint = JettonMint{
-        origin: ctx.sender,
-        receiver: ctx.sender,
-        amount: ton("1"),
-        custom_payload: emptyCell(),
-        forward_ton_amount: 0,
-        forward_payload: emptySlice()
-        };
-        self._mint_validate(ctx, msg);
-        self._mint(ctx, msg);
-    }
+   
+
+    // todo receive (_msg: ChangeMinter) {}
 
 
     receive(_msg: Mint) {
         let ctx: Context = context();
+        // todo  require (ctx.sender == self.minter, "not right minter");
         let msg: JettonMint = JettonMint{
         origin: _msg.to,
         receiver:_msg.to,

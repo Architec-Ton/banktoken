@@ -59,28 +59,9 @@ describe('BankStaking', () => {
             success: true,
         });
 
-        bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address));
-
-        const deployResultBS = await bankStaking.send(
-            deployer.getSender(),
-            {
-                value: toNano('10'),
-            },
-            {
-                $$type: 'Deploy',
-                queryId: 0n,
-            },
-        );
-
-        expect(deployResultBS.transactions).toHaveTransaction({
-            from: deployer.address,
-            to: bankStaking.address,
-            deploy: true,
-            success: true,
-        });
         ARCJetton = blockchain.openContract(
             await AJ.ArcJetton.fromInit(owner.address, 
-                bankStaking.address, 
+                // bankStaking.address, 
                 buildOnchainMetadata(ARCjettonParams)),
         );
         const deployResult = await ARCJetton.send(
@@ -101,6 +82,27 @@ describe('BankStaking', () => {
             success: true,
         });
 
+        bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, ARCJetton.address));
+
+        const deployResultBS = await bankStaking.send(
+            deployer.getSender(),
+            {
+                value: toNano('10'),
+            },
+            {
+                $$type: 'Deploy',
+                queryId: 0n,
+            },
+        );
+
+        expect(deployResultBS.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: bankStaking.address,
+            deploy: true,
+            success: true,
+        });
+   
+
     });
     it('stake BNK', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
@@ -109,7 +111,11 @@ describe('BankStaking', () => {
             {
                 value: toNano('10'),
             },
-            'Mint:1',
+            {   
+                $$type: 'Mint',
+                to: alice.address, 
+                amount: 1n
+            }
         );
 
         expect(mintyResult.transactions).toHaveTransaction({

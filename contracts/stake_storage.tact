@@ -86,11 +86,9 @@ contract StakeStorage with  Storage {
     }
 
     receive (_msg: GetWeighted) {
+        dump ("GetWeighted");
         let ctx: Context = context();
-        // let ap: AmountTime =  AmountTime{for: _msg.applied_user_address,
-        //                                 stakedAmount: self.amount,
-        //                                 time: self.updatetime,
-        //                                 calculatedAmount: self.score_function()};
+
         let mint: Mint = Mint{
             to: _msg.applied_user_address,
             amount: self.score_function()
@@ -98,7 +96,7 @@ contract StakeStorage with  Storage {
         send(SendParameters{
                 to: ctx.sender,
                 value: 0,
-                mode: (SendRemainingValue + SendIgnoreErrors),
+                mode: (SendRemainingValue /* + SendIgnoreErrors */),
                 bounce: true,
                 body:mint.toCell()
             }
@@ -129,10 +127,6 @@ contract StakeStorage with  Storage {
         else if (self.amount < 1000) {parameter = 220;}
         else if (self.amount < 10_000) {parameter = 2500;}
         else {parameter = 30_000;}
-        dump( "self.amount");
-        dump( self.amount);
-        dump( "parameter");
-        dump( parameter);
         return (self.amount * self.durationTime() * parameter / 86400000);  // 60sec*60min*24hour*1000 for parameter )
 
     }
