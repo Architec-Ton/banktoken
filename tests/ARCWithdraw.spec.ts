@@ -80,8 +80,9 @@ describe('ARCWithdraw', () => {
             deploy: true,
             success: true,
         });
- 
-
+        console.log ("alice.address, bankJetton.address, ARCJetton.address");
+        console.log (alice.address, bankJetton.address, ARCJetton.address);
+        
         bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, ARCJetton.address));
 
         const deployResultBS = await bankStaking.send(

@@ -82,7 +82,7 @@ describe('ARC jetton test', () => {
         //         queryId: 0n,
         //     },
         // );
-
+ 
         jettonMaster = blockchain.openContract(await ArcJetton.fromInit(owner.address, buildOnchainMetadata(jettonParams)));
         const deployResult = await jettonMaster.send(
             owner.getSender(),
@@ -119,7 +119,7 @@ describe('ARC jetton test', () => {
                       {   
                 $$type: 'Mint',
                 to: alice.address, 
-                amount: 1n
+                amount: 1000000000n
             }
         );
         //printTransactionFees(mintyResult.transactions);
