@@ -93,7 +93,7 @@ describe('ARC Airdrop test', () => {
 
 
         
-        ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address, bankJetton.address, buildOnchainMetadata(jettonParams)));
+        ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address,  buildOnchainMetadata(jettonParams)));
         const deployJettonResult = await ARCJetton.send(
             owner.getSender(),
             {

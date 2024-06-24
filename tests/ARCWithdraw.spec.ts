@@ -9,7 +9,7 @@ import * as AJ /* { ArcJetton, JettonBurn } */ from '../build/ArcJetton/tact_Arc
 import * as AJW /* { ArcJettonWallet, JettonTransfer } */ from '../build/ArcJetton/tact_ArcJettonWallet';
 import { StakeStorage } from '../wrappers/StakeStorage';
 
-describe('BankStaking', () => {
+describe('ARCWithdraw', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
     let bankStaking: SandboxContract<BankStaking>;
