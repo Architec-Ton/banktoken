@@ -67,22 +67,19 @@ message AddingJettonAddress {
     this_contract_jettonWallet: Address;
 }
 message Unstake {
-    index_id: Int as uint32;
+    applied_user_address: Address;
+    bnk_stake_wallet_address: Address;
 }
 message Redeem {
-    query_id: Int as uint64;
-    project_id: Int as uint16;
-}
-message GetWeighted {
-    // ===== on-chain fetch ===== //
-    applied_user_address: Address;
-}
-message Claim {
-    // ===== on-chain fetch ===== //
-    amountTime: AmountTime;
+    to: Address;
+    bnk_stake_wallet_address: Address;
+    stakedAmount: Int ;
+    rewardAmount: Int ;
 }
 
 // stake_storage.tact
+
+
 message Add {
     queryId: Int as uint64;
     amount: Int as uint32;
@@ -90,11 +87,22 @@ message Add {
     nextCell: Address;
 }
 
-message Sub {
-    queryId: Int as uint64;
-    amount: Int as uint32;
-    date: Int as uint32;
+message GetWeighted {
+    // ===== on-chain fetch ===== //
+    applied_user_address: Address;
 }
+
+// message Claim {
+//     // ===== on-chain fetch ===== //
+//     stakedAmount: Int;
+
+// }
+
+// message Sub {
+//     queryId: Int as uint64;
+//     amount: Int as uint32;
+//     date: Int as uint32;
+// }
 
 message UpdateNext {
     nextCell: Address;

@@ -23,7 +23,6 @@ contract BankStaking with Deployable {
     init( _owner:Address, _BNKjetton: Address, _ARCjetton:Address){ //, _ARCjetton: Address
         self.BNKjetton = _BNKjetton;
         self.ARCjetton = _ARCjetton;
-        // self.ARCjetton = _ARCjetton;
         self.owner = _owner;//context().sender;
         self.start_time = now();
         self.firstCell = newAddress(0,0);
@@ -32,7 +31,7 @@ contract BankStaking with Deployable {
 
     // The notification for the Jetton Token contract noification(when current address receive the token will get the notification)
     receive(stake: JettonTransferNotification){
-        dump("JettonTransferNotification");
+        // todo from what address?
         require(context().value >= ton("0.1"), "not enough value");
         let stakeInit: StateInit = initOf StakeStorage(stake.sender, self.BNKjetton);
         // init iterator if need
@@ -73,12 +72,9 @@ contract BankStaking with Deployable {
     }
 
     receive("Claim") {
-            dump("claim");
+
             let ctx: Context = context();
             let stakingAddress:Address = contractAddress(initOf StakeStorage(ctx.sender,self.BNKjetton));
-            dump(ctx.sender);
-            dump(self.BNKjetton);
-            dump (stakingAddress);
             let msg: GetWeighted= GetWeighted{applied_user_address: ctx.sender};
             send(SendParameters{
                     to: stakingAddress,
@@ -90,21 +86,13 @@ contract BankStaking with Deployable {
         }
         // answer for Claim
         receive(_msg: Mint) {
-            dump("mint");
+            // dump("mint");
             let ctx: Context = context();
             let stakingAddress:Address = contractAddress(initOf StakeStorage(_msg.to ,self.BNKjetton));
-            dump(_msg.to);
-            dump(self.BNKjetton);
+            // dump(_msg.to);
+            // dump(self.BNKjetton);
             // require(ctx.sender == stakingAddress,  "Not allowed sender");
-            // let msg: JettonMint = JettonMint{
-            //     origin: _msg.to,
-            //     receiver: _msg.to,
-            //     amount: _msg.amount,
-            //     custom_payload: emptyCell(),
-            //     forward_ton_amount: 1,
-            //     forward_payload: emptySlice()
-            // };
-        
+
             let mint: Mint = Mint{
                 to: _msg.to,
                 amount: _msg.amount
@@ -119,32 +107,70 @@ contract BankStaking with Deployable {
             );
         }
 
-    receive(msg: Unstake){
-        let weight: Int = self.score_list.get(context().sender)!!;
-        require(weight > 0, "not in the list"); // TODO: only checking point
+    receive(_msg: Unstake){
+        
+            let ctx: Context = context();
+            let stakingAddress:Address = contractAddress(initOf StakeStorage(ctx.sender,self.BNKjetton));
+            // require (_msg.applied_user_address == ctx.sender, "Not right sender");
 
-        // Send Transfer to self.get_major_jetton_address(myAddress())
-        // Transfer the jetton token back: Amount, who
-        let stake_record: StakeRecord = self.stake_record.get(msg.index_id)!!;
-        require(stake_record.jettonStakeAmount > 0, "don't have value");
-        self.stake_record.set(msg.index_id, null);
-        send(SendParameters{
-                to: self.BNKjetton,
+            // let msg: Unstake= Unstake{applied_user_address: ctx.sender,
+            //                           bnk_stake_wallet_address: _msg.bnk_stake_wallet_address
+            // };
+            send(SendParameters{
+                    to: stakingAddress,
+                    value: 0,
+                    mode: (SendRemainingValue /* + SendIgnoreErrors */),
+                    bounce: true,
+                    body:_msg.toCell(),
+                });
+        }
+        // answer for Claim
+    receive(_msg: Redeem) {
+ 
+            let ctx: Context = context();
+            let stakingAddress:Address = contractAddress(initOf StakeStorage(_msg.to ,self.BNKjetton));
+            // require(ctx.sender == stakingAddress,  "Not allowed sender");
+            dump("redeem");
+            // dump(_msg.to);
+            // dump(_msg.rewardAmount);
+            // dump(_msg.stakedAmount);
+            
+            let mint: Mint = Mint{
+                to: _msg.to,
+                amount: _msg.rewardAmount
+            };
+
+            send(SendParameters{
+                    to: self.ARCjetton,
+                    value: 0,
+                    mode: (SendRemainingValue  /* + SendIgnoreErrors */),
+                    bounce: true,
+                    body:mint.toCell()
+                }
+            );
+            let walletAddress:Address = _msg.bnk_stake_wallet_address;//contractAddress(initOf BankJettonWallet(myAddress() , self.BNKjetton));
+            // dump (myAddress());
+            // dump (walletAddress); 
+            // dump (_msg.to);
+            dump ("returnBNK");
+            send(SendParameters{
+                to: walletAddress,
                 value: 0,
-                mode: (SendRemainingValue + SendIgnoreErrors),
-                bounce: false, // 0x7362d09c - notify new owner
+                mode: (SendRemainingValue  + SendIgnoreErrors  ),
+                bounce: true, // 0x7362d09c - notify new owner
                 body: JettonTransfer{
                     query_id: 0,
-                    amount: stake_record.jettonStakeAmount,
-                    destination: context().sender,
-                    response_destination: myAddress(),
+                    amount: _msg.stakedAmount,
+                    destination:  _msg.to,
+                    response_destination:  _msg.to, 
                     custom_payload: null,
-                    forward_ton_amount: ton("0.01"),
+                    forward_ton_amount:0,
                     forward_payload: emptySlice()
                 }.toCell()
-            }
-        );
-    }
+            });
+           
+        }
+    
 
 
 

@@ -32,7 +32,6 @@ contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
     init(_owner: Address, _jetton_content: Cell){
         self.owner = _owner;
         self.minter = _owner;
-        
         self.jetton_content = _jetton_content;
     }
 
@@ -40,14 +39,16 @@ contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
 
     receive(_msg: Mint) {
         let ctx: Context = context();
+        dump("ARC MINT");
+        dump(_msg.amount);
         // require (ctx.sender == self.minter, "not right minter");
         let msg: JettonMint = JettonMint{
-        origin: _msg.to,
-        receiver:_msg.to,
-        amount: _msg.amount,
-        custom_payload: emptyCell(),
-        forward_ton_amount: 0,
-        forward_payload: emptySlice()
+            origin: _msg.to,
+            receiver:_msg.to,
+            amount: _msg.amount,
+            custom_payload: emptyCell(),
+            forward_ton_amount: 0,
+            forward_payload: emptySlice()
         };
         self._mint_validate(ctx, msg);
         self._mint(ctx, msg);

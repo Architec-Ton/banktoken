@@ -44,9 +44,7 @@ trait JettonMaster {
 
     // @dev  JettonMint is sent from user to mint jettons
     receive(msg: JettonMint) {
-        let ctx: Context = context();
-        self._mint_validate(ctx, msg);
-        self._mint(ctx, msg);
+   
     }
 
     //********************************************//

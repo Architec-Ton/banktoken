@@ -21,12 +21,12 @@ trait Storage /* with Ownable  with Deployable */ {
         self.nextCell = msg.nextCell;
     } 
  */
-    receive(msg: Sub) {
-        let ctx: Context = context(); // Check sender
-        require(ctx.sender == self.factory, "Invalid sender");
-        self.amount += msg.amount;
-        self.updatetime = now();
-    } 
+    // receive(msg: Sub) {
+    //     let ctx: Context = context(); // Check sender
+    //     require(ctx.sender == self.factory, "Invalid sender");
+    //     self.amount += msg.amount;
+    //     self.updatetime = now();
+    // } 
 
     receive (msg: UpdateNext) {
         let ctx: Context = context(); // Check sender
@@ -76,7 +76,7 @@ contract StakeStorage with  Storage {
 
     receive(_msg: Add) {
         let ctx: Context = context(); // Check sender
-        // require(ctx.sender == self.factory, "Invalid sender");
+        // require(ctx.sender == self.bankStake, "Invalid sender");
         // require(self.empty, "Already filled");
         self.amount += _msg.amount;
         self.updatetime = now();
@@ -86,9 +86,9 @@ contract StakeStorage with  Storage {
     }
 
     receive (_msg: GetWeighted) {
-        dump ("GetWeighted");
+        
         let ctx: Context = context();
-
+        // todo (require ctx.sender == self.bankStake, "wrong call" );
         let mint: Mint = Mint{
             to: _msg.applied_user_address,
             amount: self.score_function()
@@ -103,6 +103,27 @@ contract StakeStorage with  Storage {
         );
         self.updatetime = now();
     }
+    receive (_msg: Unstake) {
+        
+        let ctx: Context = context();
+        // todo (require ctx.sender == self.bankStake, "wrong call" );
+        let redeem: Redeem = Redeem{
+            to: _msg.applied_user_address,
+            bnk_stake_wallet_address: _msg.bnk_stake_wallet_address,
+            stakedAmount: self.amount,
+            rewardAmount: self.score_function()
+        };
+        send(SendParameters{
+                to: ctx.sender,
+                value: 0,
+                mode: (SendRemainingValue /* + SendIgnoreErrors */),
+                bounce: true,
+                body:redeem.toCell()
+            }
+        );
+        self.amount= 0;
+        self.updatetime = now();
+     }
     get fun amountTime(_for: Address): AmountTime {
         return   AmountTime{for: _for,
                             stakedAmount: self.amount, 
