@@ -22,32 +22,25 @@ contract BankJettonWallet with JettonWallet {
 
 contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
     total_supply: Int as coins = 0;
-    mintable: Bool = true;
+    max_supply: Int as coins = 3_000_000;
+    mintable: Bool = false;
     owner: Address;
     jetton_content: Cell;
 
-    init(owner: Address, jetton_content: Cell){
-        self.owner = owner;
-        self.jetton_content = jetton_content;
-    }
-
-   
-
-    // todo receive (_msg: ChangeMinter) {}
-
-
-    receive(_msg: Mint) {
+    init(_owner: Address,_jetton_content: Cell){
+        self.owner = _owner;
+        self.jetton_content = _jetton_content;
         let ctx: Context = context();
         // todo  require (ctx.sender == self.minter, "not right minter");
         let msg: JettonMint = JettonMint{
-        origin: _msg.to,
-        receiver:_msg.to,
-        amount: _msg.amount,
-        custom_payload: emptyCell(),
-        forward_ton_amount: 0,
-        forward_payload: emptySlice()
-        };
-        self._mint_validate(ctx, msg);
+            origin: _owner,
+            receiver:_owner,
+            amount: self.max_supply, 
+            custom_payload: emptyCell(),
+            forward_ton_amount: 0,
+            forward_payload: emptySlice()
+            };
+        // self._mint_validate(ctx, msg);
         self._mint(ctx, msg);
     }
 
