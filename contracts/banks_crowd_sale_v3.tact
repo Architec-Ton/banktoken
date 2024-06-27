@@ -49,7 +49,6 @@ message SetNewOwner {
 }
 
 contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
-    bankersAccounts: map<Address, Int as uint32>;
     totalBanks: Int as uint32;
     totalBankers: Int as uint32;
     saleEnabled: Bool;
@@ -84,21 +83,8 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
         self.jetton_wallet = myAddress();
     }
 
-    get fun Banks(addr: Address): Int {
-        let banks: Int? = self.bankersAccounts.get(addr);
-        if (banks == null) {
-            return 0;
-        } else {
-            return banks!!;
-        }
-    }
-
     get fun TotalBanks(): Int {
         return self.totalBanks + self.totalBanksOffset;
-    }
-
-    get fun Bankers(): map<Address, Int as uint32> {
-        return self.bankersAccounts;
     }
 
     get fun Manager(): Address{
@@ -140,8 +126,6 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
     receive(ref: ReferralAddress) {
         // Check if the sender has already bought banks; fail if not
         require(sender() != ref.referral, "Referral wrong");
-        let referrerBanks: Int? = self.bankersAccounts.get(ref.referral);
-        require(referrerBanks != null , "Referral doesn't have any banks");
 
         self.payBank(ref.referral, context().value, false);
         self.payBank(sender(), context().value, false);
@@ -178,30 +162,11 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
     }
     receive(bonus: Bonus) {
         require(sender() == self.manager, "Access denied");
-        self.sellBank(bonus.to, bonus.amount);
+        self.payBank(bonus.to, bonus.amount, false);
     }
     receive(msg: SetNewOwner) {
         require(sender() == self.manager, "Access denied");
         self.owner = msg.new_owner;
-    }
-
-    fun sellBank(buyer: Address, bankCount: Int) {
-        require(bankCount > 0, "Bank's must be not zero");
-        let banks: Int? = self.bankersAccounts.get(buyer);
-        let currentBanks: Int = (banks == null)? 0: banks!!;
-        // Update record
-        self.bankersAccounts.set(buyer, currentBanks + bankCount);
-        if (currentBanks == 0) {
-            self.totalBankers += 1;
-        }
-        self.totalBanks += bankCount;
-
-        // Push notification (we can catch in future)
-        emit(beginCell()
-            .storeAddress(buyer)
-            .storeUint(currentBanks + bankCount, 32)
-            .endCell()
-        );
     }
 
     fun payBank(buyer: Address, tons: Int, is_ref: Bool) {
@@ -223,7 +188,8 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
         let banksToBuy: Int = amountTon / bankPrice ; // Calculate how many banks can be bought with the received TONs
         let usedTon: Int = banksToBuy * bankPrice; // Calculate how much TON was actually used to buy banks
         let refundTon: Int = amountTon - usedTon; // Calculate the leftover TON to refund
-        self.sellBank(buyer, banksToBuy); // Use the modified sellBank function to update banks
+        self.totalBanks += banksToBuy;
+
         if (refundTon > ton("0.005") && !is_ref) {
                 send(SendParameters{
                 to: buyer,
@@ -250,11 +216,11 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
         });
 
         //         We send ton if balance more then 0.6 ton
-        if ((myBalance() - self.MinTonForStorage) > ton("0.1") && !is_ref) {
+        if ((myBalance() - self.MinTonForStorage - self.jetton_transfer_fee) > ton("0.1") && !is_ref) {
             send(SendParameters{
             to: self.owner,
             bounce: true,
-            value: 100000000,
+            value: myBalance() - self.MinTonForStorage - self.jetton_transfer_fee,
             mode: SendIgnoreErrors
             }); // Send all ton minus Min for storage
         }

@@ -212,19 +212,6 @@ describe('Banks crowd sale test', () => {
         expect(ownerBalanceBefore !== await owner.getBalance()).toEqual(true)
     });
 
-    it('should return amount of banks after crowd sale', async () => {
-        const banksAmount = 100;
-        await banksCrowdSaleV3.send(
-            alice.getSender(),
-            {
-                value: toNano(banksAmount * 1.5 + 1),
-            },
-            null
-        )
-
-        expect(await banksCrowdSaleV3.getBanks(alice.address)).toEqual(BigInt(banksAmount))
-    })
-
     it('should return amount of banks after crowd sale + banksOffset', async () => {
         const banksAmount = 100;
         await banksCrowdSaleV3.send(
@@ -236,47 +223,6 @@ describe('Banks crowd sale test', () => {
         )
 
         expect(await banksCrowdSaleV3.getTotalBanks()).toEqual(totalBanksOffset + BigInt(banksAmount))
-    })
-
-    it('should return alice address and 100 banks', async () => {
-        const banksAmount = 100;
-        await banksCrowdSaleV3.send(
-            alice.getSender(),
-            {
-                value: toNano(banksAmount * 1.5 + 1),
-            },
-            null
-        )
-
-        expect((await banksCrowdSaleV3.getBankers()).get(alice.address)).toEqual(banksAmount)
-    })
-
-    it('should check getters on 100 random wallets', async () => {
-        const banksAmount = 100;
-
-        let randoms = [];
-        for (let i = 0; i < 100; ++i) {
-            randoms.push(await blockchain.treasury(i.toString(), {balance: toNano(100 * 1.6)}))
-            await banksCrowdSaleV3.send(
-                    randoms.at(-1).getSender(),
-                    {
-                        value: toNano(banksAmount * 1.5 + 1),
-                    },
-                    i % 2 == 0? null : "buyBank"
-            )
-        }
-
-        for (let rnd of randoms) {
-            const rndWallet = await BNKJetton.getGetWalletAddress(rnd.address)
-            const rndContract = blockchain.openContract(BankJettonWallet.fromAddress(rndWallet))
-            const balance = (await rndContract.getGetWalletData()).balance
-
-            expect(balance).toEqual(toNano(banksAmount));
-            expect((await banksCrowdSaleV3.getBankers()).get(rnd.address)).toEqual(banksAmount)
-            expect(await banksCrowdSaleV3.getBanks(rnd.address)).toEqual(BigInt(banksAmount))
-        }
-
-        expect(await banksCrowdSaleV3.getTotalBanks()).toEqual(totalBanksOffset + BigInt(banksAmount * 100))
     })
 
     it('check stop and resume sale', async () => {
@@ -367,7 +313,7 @@ describe('Banks crowd sale test', () => {
                 referral: alice.address
             }
         )
-        console.log(aliceJettonContract.address, banksCrowdSaleV3JettonContract.address)
+
         expect(refCrowdSale.transactions).toHaveTransaction({
             from: banksCrowdSaleV3JettonContract.address,
             to: tonyJettonWallet,
