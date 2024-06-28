@@ -105,27 +105,36 @@ describe('BankStaking', () => {
 
     });
     it('stake BNK', async () => {
-        // Mint 1 token to Alice first to build her jetton wallet
-        const mintyResult = await bankJetton.send(
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+
+        const jettonTransfer: BJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            amount: 1n,
+            destination: bankStaking.address,
+            response_destination: bankStaking.address,
+            custom_payload: null,
+            forward_ton_amount: toNano('1'),
+            forward_payload: beginCell().endCell(),
+        };
+        const transferResult1 = await aliceBNKJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('10'),
+                value: toNano('2'),
             },
-            {   
-                $$type: 'Mint',
-                to: alice.address, 
-                amount: 1n
-            }
+            jettonTransfer,
         );
-
-        expect(mintyResult.transactions).toHaveTransaction({
+        // console.log(mintyResult.transactions)
+        expect(transferResult1.transactions).toHaveTransaction({
             from: alice.address,
-            to: bankJetton.address,
+            to: aliceWalletAddress,
             success: true,
         });
 
+
         // Alice's jetton wallet address
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
@@ -187,27 +196,35 @@ describe('BankStaking', () => {
 
     it('stake 1 BNK for 1000 days', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
-        
-        const mintyResult = await bankJetton.send(
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+
+        const jettonTransfer1: BJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            amount: 1n,
+            destination: bankStaking.address,
+            response_destination: bankStaking.address,
+            custom_payload: null,
+            forward_ton_amount: toNano('1'),
+            forward_payload: beginCell().endCell(),
+        };
+        const transferResult1 = await aliceBNKJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('10'),
+                value: toNano('2'),
             },
-            {   
-                $$type: 'Mint',
-                to: alice.address, 
-                amount: 1n
-            }
+            jettonTransfer1,
         );
-
-        expect(mintyResult.transactions).toHaveTransaction({
+        // console.log(mintyResult.transactions)
+        expect(transferResult1.transactions).toHaveTransaction({
             from: alice.address,
-            to: bankJetton.address,
+            to: aliceWalletAddress,
             success: true,
         });
 
         // Alice's jetton wallet address
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
@@ -245,28 +262,35 @@ describe('BankStaking', () => {
     });
 
     it('stake 10 BNK for 300 days', async () => {
-        // Mint 1 token to Alice first to build her jetton wallet
-        
-        const mintyResult = await bankJetton.send(
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+
+        const jettonTransfer2: BJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            amount: 1n,
+            destination: bankStaking.address,
+            response_destination: bankStaking.address,
+            custom_payload: null,
+            forward_ton_amount: toNano('1'),
+            forward_payload: beginCell().endCell(),
+        };
+        const transferResult1 = await aliceBNKJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('10'),
+                value: toNano('2'),
             },
-            {   
-                $$type: 'Mint',
-                to: alice.address, 
-                amount: 10n
-            }
+            jettonTransfer2,
         );
-
-        expect(mintyResult.transactions).toHaveTransaction({
+        // console.log(mintyResult.transactions)
+        expect(transferResult1.transactions).toHaveTransaction({
             from: alice.address,
-            to: bankJetton.address,
+            to: aliceWalletAddress,
             success: true,
         });
 
         // Alice's jetton wallet address
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
@@ -317,28 +341,36 @@ describe('BankStaking', () => {
     });
 
     it('stake 100 BNK for 30 days', async () => {
-        // Mint 1 token to Alice first to build her jetton wallet
-        
-        const mintyResult = await bankJetton.send(
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+
+        const jettonTransfer3: BJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            amount: 1n,
+            destination: bankStaking.address,
+            response_destination: bankStaking.address,
+            custom_payload: null,
+            forward_ton_amount: toNano('1'),
+            forward_payload: beginCell().endCell(),
+        };
+        const transferResult1 = await aliceBNKJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('10'),
+                value: toNano('2'),
             },
-            {   
-                $$type: 'Mint',
-                to: alice.address, 
-                amount: 100n
-            }
+            jettonTransfer3,
         );
-
-        expect(mintyResult.transactions).toHaveTransaction({
+        // console.log(mintyResult.transactions)
+        expect(transferResult1.transactions).toHaveTransaction({
             from: alice.address,
-            to: bankJetton.address,
+            to: aliceWalletAddress,
             success: true,
         });
+       
 
         // Alice's jetton wallet address
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
@@ -377,26 +409,35 @@ describe('BankStaking', () => {
     it('stake 1000 BNK for 30 days', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
         
-        const mintyResult = await bankJetton.send(
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+
+        const jettonTransfer4: BJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            amount: 1n,
+            destination: bankStaking.address,
+            response_destination: bankStaking.address,
+            custom_payload: null,
+            forward_ton_amount: toNano('1'),
+            forward_payload: beginCell().endCell(),
+        };
+        const transferResult1 = await aliceBNKJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('10'),
+                value: toNano('2'),
             },
-            {   
-                $$type: 'Mint',
-                to: alice.address, 
-                amount: 1000n
-            }
+            jettonTransfe4,
         );
-
-        expect(mintyResult.transactions).toHaveTransaction({
+        // console.log(mintyResult.transactions)
+        expect(transferResult1.transactions).toHaveTransaction({
             from: alice.address,
-            to: bankJetton.address,
+            to: aliceWalletAddress,
             success: true,
         });
 
         // Alice's jetton wallet address
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
@@ -433,28 +474,35 @@ describe('BankStaking', () => {
     });
 
     it('stake 10000 BNK for 30 days', async () => {
-        // Mint 1 token to Alice first to build her jetton wallet
-        
-        const mintyResult = await bankJetton.send(
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+
+        const jettonTransfer5: BJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            amount: 1n,
+            destination: bankStaking.address,
+            response_destination: bankStaking.address,
+            custom_payload: null,
+            forward_ton_amount: toNano('1'),
+            forward_payload: beginCell().endCell(),
+        };
+        const transferResult1 = await aliceBNKJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('10'),
+                value: toNano('2'),
             },
-            {   
-                $$type: 'Mint',
-                to: alice.address, 
-                amount: 10_000n
-            }
+            jettonTransfer5,
         );
-
-        expect(mintyResult.transactions).toHaveTransaction({
+        // console.log(mintyResult.transactions)
+        expect(transferResult1.transactions).toHaveTransaction({
             from: alice.address,
-            to: bankJetton.address,
+            to: aliceWalletAddress,
             success: true,
         });
 
         // Alice's jetton wallet address
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 

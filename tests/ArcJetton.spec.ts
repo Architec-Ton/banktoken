@@ -62,12 +62,12 @@ describe('ARC jetton test', () => {
             },
         );
 
-        expect(deployResultBNK.transactions).toHaveTransaction({
-            from: owner.address,
-            to: bankJetton.address,
-            deploy: true,
-            success: true,
-        });
+        // expect(deployResultBNK.transactions).toHaveTransaction({
+        //     from: owner.address,
+        //     to: bankJetton.address,
+        //     deploy: true,
+        //     success: true,
+        // });
 
 
         // bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address));

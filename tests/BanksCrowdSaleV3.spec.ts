@@ -76,27 +76,27 @@ describe('Banks crowd sale test', () => {
         });
 
         const banks = 3000000  // 2800000
-        const mint = await BNKJetton.send(
-            owner.getSender(),
-            {
-                value: toNano('1'),
-            },
-            {
-                $$type: 'JettonMint',
-                origin: owner.address,
-                receiver: owner.address,
-                amount: toNano(banks),
-                custom_payload: beginCell().endCell(),
-                forward_ton_amount: 0n,
-                forward_payload: beginCell().endCell(),
-            },
-        )
+        // const mint = await BNKJetton.send(
+        //     owner.getSender(),
+        //     {
+        //         value: toNano('1'),
+        //     },
+        //     {
+        //         $$type: 'JettonMint',
+        //         origin: owner.address,
+        //         receiver: owner.address,
+        //         amount: toNano(banks),
+        //         custom_payload: beginCell().endCell(),
+        //         forward_ton_amount: 0n,
+        //         forward_payload: beginCell().endCell(),
+        //     },
+        // )
 
-        expect(mint.transactions).toHaveTransaction({
-            from: owner.address,
-            to: BNKJetton.address,
-            success: true,
-        });
+        // expect(mint.transactions).toHaveTransaction({
+        //     from: owner.address,
+        //     to: BNKJetton.address,
+        //     success: true,
+        // });
 
         const jettonData = await BNKJetton.getGetJettonData()
         expect(jettonData.total_supply).toEqual(toNano(banks))

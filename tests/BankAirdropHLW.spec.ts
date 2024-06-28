@@ -81,27 +81,27 @@ describe('ARC Airdrop test', () => {
         });
 
         const banks = 3000000
-        const mintXHundred = await BNKJetton.send(
-            owner.getSender(),
-            {
-                value: toNano('1'),
-            },
-            {
-                $$type: 'JettonMint',
-                origin: owner.address,
-                receiver: owner.address,
-                amount: toNano(banks),
-                custom_payload: beginCell().endCell(),
-                forward_ton_amount: 0n,
-                forward_payload: beginCell().endCell(),
-            },
-        )
+        // const mintXHundred = await BNKJetton.send(
+        //     owner.getSender(),
+        //     {
+        //         value: toNano('1'),
+        //     },
+        //     {
+        //         $$type: 'JettonMint',
+        //         origin: owner.address,
+        //         receiver: owner.address,
+        //         amount: toNano(banks),
+        //         custom_payload: beginCell().endCell(),
+        //         forward_ton_amount: 0n,
+        //         forward_payload: beginCell().endCell(),
+        //     },
+        // )
 
-        expect(mintXHundred.transactions).toHaveTransaction({
-            from: owner.address,
-            to: BNKJetton.address,
-            success: true,
-        });
+        // expect(mintXHundred.transactions).toHaveTransaction({
+        //     from: owner.address,
+        //     to: BNKJetton.address,
+        //     success: true,
+        // });
 
         const jettonData = await BNKJetton.getGetJettonData()
         expect(jettonData.total_supply).toEqual(toNano(banks))

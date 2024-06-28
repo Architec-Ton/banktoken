@@ -1,10 +1,10 @@
 {
-    "name": "BankJetton",
+    "name": "bankjetton",
     "version": "0.0.1",
     "scripts": {
         "start": "blueprint run",
         "build": "blueprint build",
-        "test": "jest -o --verbose"
+        "test": "jest -f --verbose"
     },
     "devDependencies": {
         "@ton/blueprint": "^0.19.0",
