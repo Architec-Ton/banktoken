@@ -128,9 +128,9 @@ describe('BankUnStaking', () => {
 
         // Alice's jetton wallet address
         const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
-        console.log ("bankJetton", bankJetton.address);
-        console.log ("aliceWalletAddress", aliceWalletAddress);
-        console.log ('bankStaking.address', bankStaking.address);
+        // console.log ("bankJetton", bankJetton.address);
+        // console.log ("aliceWalletAddress", aliceWalletAddress);
+        // console.log ('bankStaking.address', bankStaking.address);
         // Alice's jetton wallet
         const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
         const aliceBNKBalanceInit = (await aliceBNKJettonContract.getGetWalletData()).balance;
@@ -172,8 +172,9 @@ describe('BankUnStaking', () => {
 
         blockchain.now = 1 + 60*60*24*300; // 300 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(33n)
-
+        const exspct= (toNano("3.3"));
+        expect(amountTime2.calculatedAmount).toEqual(exspct)
+        
 
         // Unstake && claim reward 
         const claimTX  = await bankStaking.send(
@@ -194,7 +195,7 @@ describe('BankUnStaking', () => {
         const aliceARCWalletAddress = await ARCJetton.getGetWalletAddress(alice.address);
         const aliceARCjettonContract = blockchain.openContract(await AJW.ArcJettonWallet.fromAddress(aliceARCWalletAddress));
         const aliceARCBalanceAfter = (await aliceARCjettonContract.getGetWalletData()).balance;
-        expect(aliceARCBalanceAfter).toEqual(33n);
+        expect(aliceARCBalanceAfter).toEqual(exspct);
 
         
          const aliceBNKBalanceAfter = (await aliceBNKJettonContract.getGetWalletData()).balance;

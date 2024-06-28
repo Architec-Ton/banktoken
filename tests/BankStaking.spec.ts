@@ -240,7 +240,8 @@ describe('BankStaking', () => {
 
         blockchain.now = 1 + 60*60*24*1000; // 1000 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(1n)
+        const exspct= (toNano("1"));
+        expect(amountTime2.calculatedAmount).toEqual(exspct);
 
     });
 
@@ -298,7 +299,7 @@ describe('BankStaking', () => {
 
         blockchain.now = 1 + 60*60*24*300; // 300 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(33n)
+        expect(amountTime2.calculatedAmount).toEqual(toNano("3.3"))
 
         // const claimTX  = await ARCJetton.send(
         //     alice.getSender(),
@@ -370,7 +371,10 @@ describe('BankStaking', () => {
 
         blockchain.now = 1 + 60*60*24*30; // 30 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(660n)
+        const exspct= (toNano("6.6"));
+        expect(amountTime2.calculatedAmount).toEqual(exspct)
+        //66000000000n
+        //6600000000n
 
     });
 
@@ -428,7 +432,7 @@ describe('BankStaking', () => {
 
         blockchain.now = 1 + 60*60*24*30; // 30 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(75000n)
+        expect(amountTime2.calculatedAmount).toEqual(toNano("75"))
 
     });
 
@@ -486,7 +490,7 @@ describe('BankStaking', () => {
 
         blockchain.now = 1 + 60*60*24*30; // 30 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(9_000_000n)
+        expect(amountTime2.calculatedAmount).toEqual(toNano("900"))
 
     });
 });

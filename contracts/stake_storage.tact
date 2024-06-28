@@ -143,12 +143,13 @@ contract StakeStorage with  Storage {
             1000-9999 BNK   2.5
             10000   + BNK   30
         */
-        if (self.amount < 10) {parameter = 1;} // div with 1000
-        else if (self.amount < 100) {parameter = 11;}
-        else if (self.amount < 1000) {parameter = 220;}
-        else if (self.amount < 10_000) {parameter = 2500;}
-        else {parameter = 30_000;}
-        return (self.amount * self.durationTime() * parameter / 86400000);  // 60sec*60min*24hour*1000 for parameter )
+        if (self.amount < 10) {parameter = ton("0.001");} // div with 1000
+        else if (self.amount < 100) {parameter = ton("0.011");}
+        else if (self.amount < 1000) {parameter = ton("0.22");}
+        else if (self.amount < 10_000) {parameter = ton("2.5");}
+        else {parameter = ton("30");
+        }
+        return (/* self.amount *  */self.durationTime() * parameter / 86400);  // 60sec*60min*24hour  )
 
     }
 
