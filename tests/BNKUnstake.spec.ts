@@ -189,7 +189,7 @@ describe('BankUnStaking', () => {
             }
         );
         // console.log
-        console.log (claimTX);
+        // console.log (claimTX);
         // Check that Alice's ARC jetton wallet balance is 33N
         const aliceARCWalletAddress = await ARCJetton.getGetWalletAddress(alice.address);
         const aliceARCjettonContract = blockchain.openContract(await AJW.ArcJettonWallet.fromAddress(aliceARCWalletAddress));
