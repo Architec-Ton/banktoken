@@ -20,11 +20,12 @@ describe('BNK  jetton test', () => {
         owner = await blockchain.treasury('owner');
         alice = await blockchain.treasury('alice');
         const jetton_content: Cell = beginCell().endCell();
+
         jettonMaster = blockchain.openContract(await BankJetton.fromInit(owner.address, jetton_content));
         const deployResult = await jettonMaster.send(
             owner.getSender(),
             {
-                value: toNano('0.05'),
+                value: toNano('1'),
             },
             {
                 $$type: 'Deploy',
@@ -32,17 +33,17 @@ describe('BNK  jetton test', () => {
             },
         );
 
-        const ownerWalletAddress = await jettonMaster.getGetWalletAddress(owner.address);
+        const ownerWalletAddress = await jettonMaster.getGetWalletAddress(owner.address)
         ownerJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(ownerWalletAddress));
         const ownerBNKBalanceInit = (await ownerJettonContract.getGetWalletData()).balance;
-        expect(ownerBNKBalanceInit).toEqual(3_000_000n);
+        expect(ownerBNKBalanceInit).toEqual(toNano(3_000_000n));
 
-        // expect(deployResult.transactions).toHaveTransaction({
-        //     from: owner.address,
-        //     to: jettonMaster.address,
-        //     deploy: true,
-        //     success: true,
-        // })
+        expect(deployResult.transactions).toHaveTransaction({
+            from: owner.address,
+            to: jettonMaster.address,
+            deploy: true,
+            success: true,
+        })
 
     });
 
@@ -64,10 +65,10 @@ describe('BNK  jetton test', () => {
                 query_id: 0n,
                 destination: alice.address, 
                 response_destination: alice.address,
-                amount:  1n,
-                custom_payload: null,
+                amount:  toNano(1n),
+                custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
-                forward_payload:null
+                forward_payload: beginCell().endCell()
             }
         );
         //printTransactionFees(sendyResult.transactions);
@@ -112,17 +113,17 @@ describe('BNK  jetton test', () => {
                 query_id: 0n,
                 destination: alice.address, 
                 response_destination: alice.address,
-                amount:  1n,
-                custom_payload: null,
+                amount: toNano(1n),
+                custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
-                forward_payload:null
+                forward_payload:beginCell().endCell()
             }
         );
         //pr
         // Alice's jetton wallet address
         const aliceWalletAddress = await jettonMaster.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
-        const aliceJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(aliceWalletAddress));
+        const aliceJettonContract = blockchain.openContract(BankJettonWallet.fromAddress(aliceWalletAddress));
 
         // Mint 1 token to Bob first to build his jetton wallet
         const bob = await blockchain.treasury('bob');
@@ -137,9 +138,9 @@ describe('BNK  jetton test', () => {
                 destination: bob.address, 
                 response_destination: bob.address,
                 amount:  1n,
-                custom_payload: null,
+                custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
-                forward_payload:null
+                forward_payload: beginCell().endCell()
             }
         );
         //pr
@@ -156,7 +157,7 @@ describe('BNK  jetton test', () => {
             amount: 1n,
             destination: bob.address,
             response_destination: bob.address,
-            custom_payload: null,
+            custom_payload: beginCell().endCell(),
             forward_ton_amount: 0n,
             forward_payload: beginCell().endCell(),
         };
@@ -208,12 +209,11 @@ describe('BNK  jetton test', () => {
                 destination: alice.address, 
                 response_destination: alice.address,
                 amount:  1n,
-                custom_payload: null,
+                custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
-                forward_payload:null
+                forward_payload:beginCell().endCell()
             }
         );
-        //pr
 
         const jettonBurn: JettonBurn = {
             $$type: 'JettonBurn',

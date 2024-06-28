@@ -22,7 +22,7 @@ contract BankJettonWallet with JettonWallet {
 
 contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
     total_supply: Int as coins = 0;
-    max_supply: Int as coins = 3_000_000;
+    max_supply: Int as coins = ton("3000000");
     mintable: Bool = false;
     owner: Address;
     jetton_content: Cell;
@@ -42,6 +42,11 @@ contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
             };
         // self._mint_validate(ctx, msg);
         self._mint(ctx, msg);
+    }
+
+    receive(_msg: Mint) {
+        require(self.owner == context().sender, "JettonMaster: Sender is not a Jetton owner");
+        self.mintable = false;
     }
 
     override inline fun _mint_validate(ctx: Context, msg: JettonMint) {

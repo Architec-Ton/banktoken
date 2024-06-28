@@ -34,7 +34,7 @@ describe('ARC Airdrop test', () => {
         symbol: "ARC",
         image: "https://www.com/ARCjetton.png"
     };
-        
+
     const BNKjettonParams = {
         name: 'BNK jetton',
         description: 'This is description for BNK jetton',
@@ -92,7 +92,7 @@ describe('ARC Airdrop test', () => {
         // });
 
 
-        
+
         ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address,  buildOnchainMetadata(jettonParams)));
         const deployJettonResult = await ARCJetton.send(
             owner.getSender(),
@@ -119,13 +119,9 @@ describe('ARC Airdrop test', () => {
                 value: toNano('1'),
             },
             {
-                $$type: 'JettonMint',
-                origin: owner.address,
-                receiver: owner.address,
+                $$type: 'Mint',
+                to: owner.address,
                 amount: toNano(banks * 100),
-                custom_payload: beginCell().endCell(),
-                forward_ton_amount: 0n,
-                forward_payload: beginCell().endCell(),
             },
         )
 
