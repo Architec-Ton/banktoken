@@ -160,7 +160,7 @@ describe('ARCWithdraw', () => {
 
         blockchain.now = 1 + 60*60*24*300; // 300 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(33n)
+        expect(amountTime2.calculatedAmount).toEqual(toNano("3.3"))
         // claim reward
         const claimTX  = await bankStaking.send(
             alice.getSender(),
@@ -175,7 +175,7 @@ describe('ARCWithdraw', () => {
         const aliceARCWalletAddress = await ARCJetton.getGetWalletAddress(alice.address);
         const aliceARCjettonContract = blockchain.openContract(await AJW.ArcJettonWallet.fromAddress(aliceARCWalletAddress));
         const aliceARCBalanceAfter = (await aliceARCjettonContract.getGetWalletData()).balance;
-        expect(aliceARCBalanceAfter).toEqual(33n);
+        expect(aliceARCBalanceAfter).toEqual(toNano("3.3"));
     });
 
     
