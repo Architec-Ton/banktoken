@@ -43,7 +43,7 @@ describe('BankUnStaking', () => {
         const deployResultBNK = await bankJetton.send(
             owner.getSender(),
             {
-                value: toNano('0.05'),
+                value: toNano('1'),
             },
             {
                 $$type: 'Deploy',
@@ -51,21 +51,16 @@ describe('BankUnStaking', () => {
             },
         );
 
-        // expect(deployResultBNK.transactions).toHaveTransaction({
-        //     from: owner.address,
-        //     to: bankJetton.address,
-        //     deploy: true,
-        //     success: true,
-        // });
-
-        const ownerWalletAddress = await bankJetton.getGetWalletAddress(owner.address);
-        const ownerJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(ownerWalletAddress));
-        const ownerBNKBalanceInit = (await ownerJettonContract.getGetWalletData()).balance;
-        expect(ownerBNKBalanceInit).toEqual(3_000_000n);
+        expect(deployResultBNK.transactions).toHaveTransaction({
+            from: owner.address,
+            to: bankJetton.address,
+            deploy: true,
+            success: true,
+        });
 
         ARCJetton = blockchain.openContract(
-            await AJ.ArcJetton.fromInit(owner.address, 
-                                        buildOnchainMetadata(ARCjettonParams)),
+            await AJ.ArcJetton.fromInit(owner.address,
+                buildOnchainMetadata(ARCjettonParams)),
         );
         const deployResult = await ARCJetton.send(
             owner.getSender(),
@@ -84,7 +79,7 @@ describe('BankUnStaking', () => {
             deploy: true,
             success: true,
         });
- 
+
 
         bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, ARCJetton.address));
 
@@ -105,59 +100,39 @@ describe('BankUnStaking', () => {
             deploy: true,
             success: true,
         });
-        
+
+        const ownerWalletAddress = await bankJetton.getGetWalletAddress(owner.address);
+        const ownerBNKJettonContract = blockchain.openContract( BJW.BankJettonWallet.fromAddress(ownerWalletAddress));
+
+
+        await ownerBNKJettonContract.send(
+            owner.getSender(),
+            {
+                value: toNano('10'),
+            },
+            {
+                $$type: 'JettonTransfer',
+                query_id: 0n,
+                amount: 10n,
+                destination: alice.address,
+                response_destination: alice.address,
+                custom_payload: null,
+                forward_ton_amount: toNano('1'),
+                forward_payload: beginCell().endCell(),
+            }
+        );
+
     });
 
 
     it('unstake  10 BNK and withdraw ARCS for for 300 days', async () => {
-        // Mint 1 token to Alice first to build her jetton wallet
-        
-        // const mintyResult = await bankJetton.send(
-        //     alice.getSender(),
-        //     {
-        //         value: toNano('10'),
-        //     },
-        //     {   
-        //         $$type: 'Mint',
-        //         to: alice.address, 
-        //         amount: 10n
-        //     }
-        // );
-        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
-        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
-
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
-            query_id: 0n,
-            amount: 1n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
-        };
-        const transferResult1 = await aliceBNKJettonContract.send(
-            alice.getSender(),
-            {
-                value: toNano('2'),
-            },
-            jettonTransfer,
-        );
-        // console.log(mintyResult.transactions)
-        expect(transferResult1.transactions).toHaveTransaction({
-            from: alice.address,
-            to: aliceWalletAddress,
-            success: true,
-        });
-        
-
         // Alice's jetton wallet address
-        // const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
-        console.log ("bankJetton", bankJetton.address);
-        console.log ("aliceWalletAddress", aliceWalletAddress);
-        console.log ('bankStaking.address', bankStaking.address);
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // console.log ("bankJetton", bankJetton.address);
+        // console.log ("aliceWalletAddress", aliceWalletAddress);
+        // console.log ('bankStaking.address', bankStaking.address);
         // Alice's jetton wallet
-        // const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+        const aliceBNKJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
         const aliceBNKBalanceInit = (await aliceBNKJettonContract.getGetWalletData()).balance;
         expect(aliceBNKBalanceInit).toEqual(10n);
 
@@ -181,10 +156,10 @@ describe('BankUnStaking', () => {
 
         const bnkstkWalletAddress = await bankJetton.getGetWalletAddress(bankStaking.address);
         console.log('bnkstkWalletAddress', bnkstkWalletAddress);
-        const BNKstkJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(bnkstkWalletAddress));
+        const BNKstkJettonContract = blockchain.openContract(BJW.BankJettonWallet.fromAddress(bnkstkWalletAddress));
         const BNKstkBalanceInit = (await BNKstkJettonContract.getGetWalletData()).balance;
         expect(BNKstkBalanceInit).toEqual(10n);
-       
+
 
         // console.log(transferResult.transactions);
 
@@ -197,10 +172,11 @@ describe('BankUnStaking', () => {
 
         blockchain.now = 1 + 60*60*24*300; // 300 days gone
         const amountTime2 = await stakeStorage.getAmountTime(alice.address);
-        expect(amountTime2.calculatedAmount).toEqual(33n)
+        const exspct= (toNano("3.3"));
+        expect(amountTime2.calculatedAmount).toEqual(exspct)
 
 
-        // Unstake && claim reward 
+        // Unstake && claim reward
         const claimTX  = await bankStaking.send(
             alice.getSender(),
             {
@@ -209,22 +185,21 @@ describe('BankUnStaking', () => {
             // "Unstake"
             {
                 $$type: 'Unstake',
-                applied_user_address: alice.address, 
+                applied_user_address: alice.address,
                 bnk_stake_wallet_address: bnkstkWalletAddress
             }
         );
         // console.log
-        console.log (claimTX);
+        // console.log (claimTX);
         // Check that Alice's ARC jetton wallet balance is 33N
         const aliceARCWalletAddress = await ARCJetton.getGetWalletAddress(alice.address);
         const aliceARCjettonContract = blockchain.openContract(await AJW.ArcJettonWallet.fromAddress(aliceARCWalletAddress));
         const aliceARCBalanceAfter = (await aliceARCjettonContract.getGetWalletData()).balance;
-        expect(aliceARCBalanceAfter).toEqual(33n);
+        expect(aliceARCBalanceAfter).toEqual(exspct);
 
-        
-         const aliceBNKBalanceAfter = (await aliceBNKJettonContract.getGetWalletData()).balance;
-         expect(aliceBNKBalanceAfter).toEqual(10n);
-     });
 
-    
+        const aliceBNKBalanceAfter = (await aliceBNKJettonContract.getGetWalletData()).balance;
+        expect(aliceBNKBalanceAfter).toEqual(10n);
+    });
+
 });
