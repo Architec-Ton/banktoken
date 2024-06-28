@@ -142,8 +142,8 @@ contract BankStaking with Deployable {
 
             send(SendParameters{
                     to: self.ARCjetton,
-                    value: 0,
-                    mode: (SendRemainingValue  /* + SendIgnoreErrors */),
+                    value: 60000000,
+                    mode: (  SendIgnoreErrors ),
                     bounce: true,
                     body:mint.toCell()
                 }
