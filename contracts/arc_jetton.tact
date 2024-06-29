@@ -34,14 +34,17 @@ contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
         self.minter = _owner;
         self.jetton_content = _jetton_content;
     }
-
-    // todo receive (_msg: ChangeMinter) {}
+  
+    receive (_msg: ChangeMinter) {
+        require (context().sender == self.owner, "Not right owner ");
+        self.minter = _msg.newMinter;
+    }
 
     receive(_msg: Mint) {
         let ctx: Context = context();
-        dump("ARC MINT");
-        dump(_msg.amount);
-        // require (ctx.sender == self.minter, "not right minter");
+        // dump("ARC MINT");
+        // dump(_msg.amount);
+        require (ctx.sender == self.minter, "not right minter");
         let msg: JettonMint = JettonMint{
             origin: _msg.to,
             receiver:_msg.to,

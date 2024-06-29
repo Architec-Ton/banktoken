@@ -108,6 +108,9 @@ message UpdateNext {
     nextCell: Address;
 }
 
+message ChangeMinter {
+    newMinter: Address;
+}
 
 
 

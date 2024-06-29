@@ -100,6 +100,23 @@ describe('BankUnStaking', () => {
             deploy: true,
             success: true,
         });
+       
+        const newMinter = await ARCJetton.send(
+            owner.getSender(),
+            {
+                value: toNano('10'),
+            },
+            {
+                $$type: 'ChangeMinter',
+                newMinter: bankStaking.address
+            },
+        );
+
+        expect(newMinter.transactions).toHaveTransaction({
+            from: owner.address,
+            to: ARCJetton.address,
+            success: true,
+        });
 
         const ownerWalletAddress = await bankJetton.getGetWalletAddress(owner.address);
         const ownerBNKJettonContract = blockchain.openContract( BJW.BankJettonWallet.fromAddress(ownerWalletAddress));
@@ -155,7 +172,7 @@ describe('BankUnStaking', () => {
         );
 
         const bnkstkWalletAddress = await bankJetton.getGetWalletAddress(bankStaking.address);
-        console.log('bnkstkWalletAddress', bnkstkWalletAddress);
+        // console.log('bnkstkWalletAddress', bnkstkWalletAddress);
         const BNKstkJettonContract = blockchain.openContract(BJW.BankJettonWallet.fromAddress(bnkstkWalletAddress));
         const BNKstkBalanceInit = (await BNKstkJettonContract.getGetWalletData()).balance;
         expect(BNKstkBalanceInit).toEqual(10n);

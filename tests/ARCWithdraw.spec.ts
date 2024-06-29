@@ -80,9 +80,10 @@ describe('ARCWithdraw', () => {
             deploy: true,
             success: true,
         });
-        console.log ("alice.address, bankJetton.address, ARCJetton.address");
-        console.log (alice.address, bankJetton.address, ARCJetton.address);
+        // console.log ("alice.address, bankJetton.address, ARCJetton.address");
+        // console.log (alice.address, bankJetton.address, ARCJetton.address);
 
+  
         bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, ARCJetton.address));
 
         const deployResultBS = await bankStaking.send(
@@ -100,6 +101,23 @@ describe('ARCWithdraw', () => {
             from: deployer.address,
             to: bankStaking.address,
             deploy: true,
+            success: true,
+        });
+
+        const newMinter = await ARCJetton.send(
+            owner.getSender(),
+            {
+                value: toNano('1'),
+            },
+            {
+                $$type: 'ChangeMinter',
+                newMinter: bankStaking.address
+            },
+        );
+
+        expect(newMinter.transactions).toHaveTransaction({
+            from: owner.address,
+            to: ARCJetton.address,
             success: true,
         });
 
