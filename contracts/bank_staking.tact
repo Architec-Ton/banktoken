@@ -36,8 +36,8 @@ contract BankStaking with Deployable {
         let senderWallet: StateInit = initOf BankJettonWallet (stake.sender, self.BNKjetton);
         dump ("self.BNKjetton"); 
         dump (self.BNKjetton); 
-        dump("context().sender");
-        dump (context().sender); 
+        dump("stake.sender");
+        dump (stake.sender); 
         dump("senderWallet");
         dump( contractAddress(senderWallet));
         // dump(self.BNKjetton);
