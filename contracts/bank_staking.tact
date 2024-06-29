@@ -34,6 +34,8 @@ contract BankStaking with Deployable {
     receive(stake: JettonTransferNotification){
         // todo from what address?
         let senderWallet: StateInit = initOf BankJettonWallet (stake.sender, self.BNKjetton);
+        dump ("self.BNKjetton"); 
+        dump (self.BNKjetton); 
         dump("context().sender");
         dump (context().sender); 
         dump("senderWallet");

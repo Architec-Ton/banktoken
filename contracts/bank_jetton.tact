@@ -15,6 +15,10 @@ contract BankJettonWallet with JettonWallet {
     }
 
     override inline fun calculate_jetton_wallet_init(owner_address: Address): StateInit {
+        dump("self.jetton_master"); 
+        dump(self.jetton_master); 
+        dump("owner_address"); 
+        dump(owner_address); 
         dump("calculate_jetton_wallet_init"); 
         dump(contractAddress(initOf BankJettonWallet(owner_address, self.jetton_master)));
         return initOf BankJettonWallet(owner_address, self.jetton_master);
