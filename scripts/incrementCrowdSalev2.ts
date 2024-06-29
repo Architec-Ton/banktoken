@@ -25,7 +25,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
             $$type: 'Add',
             queryId: 0n,
             amount: 1n,
-        }
+        },
     );
 
     ui.write('Waiting for counter to increase...');

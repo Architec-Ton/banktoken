@@ -1,4 +1,4 @@
-# bunchtoken
+# BankJetton
 
 ## Project structure
 

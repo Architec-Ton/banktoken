@@ -1,6 +1,6 @@
 import { CompilerConfig } from '@ton/blueprint';
 
 export const compile: CompilerConfig = {
-    lang: 'tact',
-    target: 'contracts/bunch_token.tact',
+    lang: 'func',
+    targets: ['contracts/highload-wallet-v3.func'],
 };

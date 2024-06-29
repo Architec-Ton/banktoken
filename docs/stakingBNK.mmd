@@ -1,0 +1,10 @@
+sequenceDiagram
+Actor Staker
+Staker->>BankJetton: Send amount <BR/>of Banks <BR/>to StakeFactory
+BankJetton->>BankJettonWalletStaker:decrease amount <BR/> of Banks
+BankJetton->>BankJettonWalletStakeFactory:Create-if-no
+BankJetton->>BankJettonWalletStakeFactory: increase banks
+BankJetton->>StakeFactory: INFO:increased amount of Banks
+StakeFactory->>StakeSafe4Staker: Create-if-no
+StakeFactory->>StakeSafe4Staker: Send Banks
+StakeSafe4Staker->>StakeSafe4Staker: fixing amount, date

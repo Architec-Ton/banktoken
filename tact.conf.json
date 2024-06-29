@@ -12,6 +12,45 @@
             "inline": false
           }
         }
+      },
+      {
+        "name": "BankJetton",
+        "path": "./contracts/bank_jetton.tact",
+        "output": "./build/BankJetton",
+
+        "options": {
+          "debug": true,
+          "masterchain": true,
+          "experimental": {
+            "inline": false
+          }
+        }
+      },
+      {
+        "name": "ArcJetton",
+        "path": "./contracts/arc_jetton.tact",
+        "output": "./build/ArcJetton",
+
+        "options": {
+          "debug": true,
+          "masterchain": true,
+          "experimental": {
+            "inline": false
+          }
+        }
+      },
+      {
+        "name": "BankStaking",
+        "path": "./contracts/bank_staking.tact",
+        "output": "./build/BankStaking",
+
+        "options": {
+          "debug": true,
+          "masterchain": true,
+          "experimental": {
+            "inline": false
+          }
+        }
       }
     ]
   }

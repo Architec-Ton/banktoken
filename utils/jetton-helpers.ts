@@ -1,6 +1,7 @@
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { beginCell, Cell } from "@ton/ton";
-import { Dictionary } from "@ton/core";
+import {Address, Dictionary, toNano} from "@ton/core";
+import {JettonTransfer} from "../build/ArcJetton/tact_ArcJetton";
 
 const ONCHAIN_CONTENT_PREFIX = 0x00;
 const SNAKE_PREFIX = 0x00;
@@ -57,6 +58,19 @@ export function buildOnchainMetadata(data: {
 
     return beginCell()
         .storeInt(ONCHAIN_CONTENT_PREFIX, 8)
-.storeDict(dict)
+        .storeDict(dict)
         .endCell();
+}
+
+export function getJettonTransferBuilder(address: Address, amount: bigint | number): JettonTransfer {
+    return {
+        $$type: 'JettonTransfer',
+        query_id: 0n,
+        amount: toNano(amount),
+        destination: address,
+        response_destination: address,
+        custom_payload: beginCell().endCell(),
+        forward_ton_amount: 0n,
+        forward_payload: beginCell().endCell(),
+    }
 }

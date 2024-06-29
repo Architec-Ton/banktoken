@@ -23,7 +23,7 @@ describe('BanksCrowdSale', () => {
             {
                 $$type: 'Deploy',
                 queryId: 0n,
-            }
+            },
         );
 
         expect(deployResult.transactions).toHaveTransaction({

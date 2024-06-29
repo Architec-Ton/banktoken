@@ -1,0 +1,13 @@
+sequenceDiagram
+Actor Staker
+Staker->>StakeSafe4Staker: get amount of ARC <br />till this time
+StakeSafe4Staker->> Staker: Info:Amount of ARC = <br /> AmountFromStart-LastWithdrawedAmount 
+Staker->>StakeSafe4Staker: withdraw Amount of ARC 
+Note over Staker, StakeSafe4Staker: if Amount<=AmountFromStart-LastWithdrawedAmount 
+StakeSafe4Staker->>StakeSafe4Staker: LastWithdrawedAmount+=Amount
+StakeSafe4Staker->>ARCJetton: mint Amount of ARC for Staker
+ARCJetton->>ARCJettonWallet4Staker:Create-if-no
+ARCJetton->>ARCJettonWallet4Staker: increase ARCs
+ARCJettonWallet4Staker->>Staker: minted ARCs
+Note over Staker, StakeSafe4Staker: Else
+StakeSafe4Staker->>Staker: Error Not Enough Amount

@@ -60,8 +60,8 @@ contract BanksCrowdSaleV2 with Deployable, OwnableTransferable {
         self.saleEnabled = true;
         self.totalBanks = 0;
         self.totalBankers = 0;
-        self.totalBanksOffset = 0;
-        self.totalBankersOffset = 0;
+        self.totalBanksOffset = 107613;
+        self.totalBankersOffset = 4209;
         self.owner = context().sender;
         self.manager = context().sender;
         self.price1stage = ton("1");
