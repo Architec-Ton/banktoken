@@ -111,7 +111,7 @@ describe('BankUnStaking', () => {
                 newMinter: bankStaking.address
             },
         );
-
+ 
         expect(newMinter.transactions).toHaveTransaction({
             from: owner.address,
             to: ARCJetton.address,

@@ -6,7 +6,7 @@ import "./stake_storage.tact";
 contract BankStaking with Deployable {
     BNKjetton: Address;
     ARCjetton: Address;
-    owner: Address;
+    // owner: Address;
     index: Int as uint32 = 0;
     stake_record: map<Int, StakeRecord>;
     score_list: map<Address, Int>;
@@ -24,7 +24,7 @@ contract BankStaking with Deployable {
         //, _ARCjetton: Address
         self.BNKjetton = _BNKjetton;
         self.ARCjetton = _ARCjetton;
-        self.owner = _owner;//context().sender;
+        // self.owner = _owner;//context().sender;
         self.start_time = now();
         self.firstCell = newAddress(0,0);
         self.lastCell = newAddress(0,0);
@@ -33,6 +33,13 @@ contract BankStaking with Deployable {
     // The notification for the Jetton Token contract noification(when current address receive the token will get the notification)
     receive(stake: JettonTransferNotification){
         // todo from what address?
+        let senderWallet: StateInit = initOf BankJettonWallet (stake.sender, self.BNKjetton);
+        dump("context().sender");
+        dump (context().sender); 
+        dump("senderWallet");
+        dump( contractAddress(senderWallet));
+        // dump(self.BNKjetton);
+        // require(context().sender == contractAddress(senderWallet), "Not right sender");
         require(context().value >= ton("0.1"), "not enough value");
         let stakeInit: StateInit = initOf StakeStorage(stake.sender, self.BNKjetton);
         // init iterator if need

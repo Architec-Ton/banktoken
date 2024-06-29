@@ -15,6 +15,8 @@ contract BankJettonWallet with JettonWallet {
     }
 
     override inline fun calculate_jetton_wallet_init(owner_address: Address): StateInit {
+        dump("calculate_jetton_wallet_init"); 
+        dump(contractAddress(initOf BankJettonWallet(owner_address, self.jetton_master)));
         return initOf BankJettonWallet(owner_address, self.jetton_master);
     }
 }
@@ -41,7 +43,7 @@ contract BankJetton with JettonMaster, Deployable,  Ownable{
         self._mint(ctx, msg);
     }
 
-    receive(_msg: Mint) {
+    receive(_msg: Mint) { // TODO remove
         require(self.owner == context().sender, "JettonMaster: Sender is not a Jetton owner");
         self.mintable = false;
     }

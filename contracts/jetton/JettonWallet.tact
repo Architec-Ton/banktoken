@@ -143,6 +143,8 @@ trait JettonWallet {
     virtual inline fun _internal_transfer_notification(ctx: Context, msg: JettonInternalTransfer) {
         if (msg.forward_ton_amount > 0) {
             dump("_internal_transfer_notification");
+            // dump (myAddress());
+            //dump (self.jetton_master);
             send(SendParameters{
                 to: self.owner,
                 value: msg.forward_ton_amount,
