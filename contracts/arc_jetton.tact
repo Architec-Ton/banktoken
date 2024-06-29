@@ -1,4 +1,5 @@
 import "@stdlib/deploy";
+import "@stdlib/ownable";
 import "./jetton/JettonMaster.tact";
 import "./jetton/JettonWallet.tact";
 import "./imports/message.tact"; 
@@ -21,7 +22,7 @@ contract ArcJettonWallet with JettonWallet {
 
 
 
-contract ArcJetton with JettonMaster, Deployable { //TODO , Ownable
+contract ArcJetton with JettonMaster, Deployable, Ownable {
     total_supply: Int as coins = 0;
     mintable: Bool = true;
     owner: Address;

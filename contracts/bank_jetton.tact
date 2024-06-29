@@ -1,6 +1,5 @@
 import "@stdlib/deploy";
-// import "@stdlib/ownable";
-
+import "@stdlib/ownable";
 import "./jetton/JettonMaster.tact";
 import "./jetton/JettonWallet.tact";
 import "./imports/message.tact"; 
@@ -20,7 +19,7 @@ contract BankJettonWallet with JettonWallet {
     }
 }
 
-contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
+contract BankJetton with JettonMaster, Deployable,  Ownable{ 
     total_supply: Int as coins = 0;
     max_supply: Int as coins = ton("3000000");
     mintable: Bool = false;
@@ -31,7 +30,6 @@ contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
         self.owner = _owner;
         self.jetton_content = _jetton_content;
         let ctx: Context = context();
-        // todo  require (ctx.sender == self.minter, "not right minter");
         let msg: JettonMint = JettonMint{
             origin: _owner,
             receiver:_owner,
@@ -40,7 +38,6 @@ contract BankJetton with JettonMaster, Deployable{ //TODO  Ownable
             forward_ton_amount: 0,
             forward_payload: emptySlice()
             };
-        // self._mint_validate(ctx, msg);
         self._mint(ctx, msg);
     }
 
