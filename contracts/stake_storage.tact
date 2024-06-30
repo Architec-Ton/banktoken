@@ -50,9 +50,6 @@ trait Storage /* with Ownable  with Deployable */ {
     get fun  prevnextcells(): PrevNextCells {
         return PrevNextCells{previous: self.previousCell, next:  self.nextCell};
     }
-
-
-
 }
 
 
@@ -64,31 +61,33 @@ contract StakeStorage with  Storage {
     factory: Address;
     owner: Address;
     empty: Bool = true;
-
+    stakerWallet: Address;
 
     init(_owner: Address, _factory:Address) {
 
         self.previousCell = newAddress(0,0);
         self.nextCell =  newAddress(0,0);
+        self.stakerWallet = newAddress(0,0);
         self.factory = _factory;
         self.owner = _owner;
     }
 
     receive(_msg: Add) {
         let ctx: Context = context(); // Check sender
-        // require(ctx.sender == self.bankStake, "Invalid sender");
-        // require(self.empty, "Already filled");
+        require(ctx.sender == self.factory, "Invalid sender");
+        require(self.empty, "Already filled");
         self.amount += _msg.amount;
         self.updatetime = now();
         self.previousCell= _msg.previousCell;
         self.nextCell = _msg.nextCell;
-        self.empty = false;
+        self.stakerWallet = _msg.stakerWallet;
+        self.empty = false;        
     }
 
     receive (_msg: GetWeighted) {
 
         let ctx: Context = context();
-        // todo (require ctx.sender == self.bankStake, "wrong call" );
+        require (ctx.sender == self.factory, "wrong call" );
         let mint: Mint = Mint{
         to: _msg.applied_user_address,
         amount: self.score_function()

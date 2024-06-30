@@ -49,6 +49,7 @@ contract BankStaking with Deployable {
             body:Add {
                 queryId: stake.query_id, //Int as uint64;
                 amount:  stake.amount, //Int as uint32;
+                stakerWallet: context().sender,
                 previousCell: self.lastCell, // Address;
                 nextCell: self.firstCell // Address;
             }.toCell(),
