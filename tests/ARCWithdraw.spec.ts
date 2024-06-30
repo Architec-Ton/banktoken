@@ -124,7 +124,7 @@ describe('ARCWithdraw', () => {
         const addARCjetton = await bankJetton.send(
             owner.getSender(),
             {
-                value: toNano('1'),
+                value: toNano('0.05'),
             },
             {
                 $$type: 'AddingJettonAddress',

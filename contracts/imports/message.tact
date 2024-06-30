@@ -62,7 +62,7 @@ message Mint{
     amount: Int; 
 }
 // ================================================================================ //
-// bank_staking.tact
+// bankstaking
 message Stake {
     // stake_wallet_address: Address;
     query_id: Int as uint64;
@@ -75,11 +75,9 @@ message AddingJettonAddress {
 }
 message Unstake {
     applied_user_address: Address;
-    bnk_stake_wallet_address: Address;
 }
 message Redeem {
     to: Address;
-    bnk_stake_wallet_address: Address;
     stakedAmount: Int ;
     rewardAmount: Int ;
 }

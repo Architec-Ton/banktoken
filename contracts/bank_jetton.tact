@@ -66,6 +66,18 @@ contract BankJetton with JettonMaster, Deployable,  Ownable{
         self.mintable = false;
     }
 
+    override inline fun calculate_jetton_wallet_init(owner_address: Address): StateInit {
+        return initOf BankJettonWallet(owner_address, myAddress());
+    }
+
+    // fun _calculate_stake_wallet_init(owner_address: Address): StateInit {
+    //     return initOf StakeStorage (owner_address, myAddress());
+    // }
+
+    get fun calculate_stake_address(owner_address: Address): Address {
+        return contractAddress(initOf StakeStorage (owner_address, myAddress()));
+    } 
+
     receive (_msg: AddingJettonAddress ) {
         let ctx: Context = context();
         require(ctx.sender == self.owner, "No right to  AddingJettonAddress");
@@ -153,8 +165,6 @@ contract BankJetton with JettonMaster, Deployable,  Ownable{
         // dump("mint");
         let ctx: Context = context();
         let stakingAddress:Address = contractAddress(initOf StakeStorage(_msg.to ,myAddress()));
-        // dump(_msg.to);
-        // dump(self.BNKjetton);
         require(ctx.sender == stakingAddress,  "Not allowed sender");
 
         let mint: Mint = Mint{
@@ -172,17 +182,21 @@ contract BankJetton with JettonMaster, Deployable,  Ownable{
         );
     }
 
-    override inline fun calculate_jetton_wallet_init(owner_address: Address): StateInit {
-        return initOf BankJettonWallet(owner_address, myAddress());
+
+    // receive(_msg: Unstake){
+    receive("Unstake"){
+        let ctx: Context = context();
+        let stakingAddress:Address = contractAddress(initOf StakeStorage(ctx.sender,myAddress()));
+        let msg: Unstake= Unstake{applied_user_address: ctx.sender,
+                                };
+        send(SendParameters{
+            to: stakingAddress,
+            value: 0,
+            mode: (SendRemainingValue /* + SendIgnoreErrors */),
+            bounce: true,
+            body:msg.toCell()
+        } );
     }
-
-    // fun _calculate_stake_wallet_init(owner_address: Address): StateInit {
-    //     return initOf StakeStorage (owner_address, myAddress());
-    // }
-
-    get fun calculate_stake_address(owner_address: Address): Address {
-        return contractAddress(initOf StakeStorage (owner_address, myAddress()));
-    } 
-
+    
 
 }
