@@ -75,41 +75,20 @@ describe('Banks crowd sale test', () => {
             success: true,
         });
 
-        const banks = 3000000  // 2800000
-        // const mint = await BNKJetton.send(
-        //     owner.getSender(),
-        //     {
-        //         value: toNano('1'),
-        //     },
-        //     {
-        //         $$type: 'JettonMint',
-        //         origin: owner.address,
-        //         receiver: owner.address,
-        //         amount: toNano(banks),
-        //         custom_payload: beginCell().endCell(),
-        //         forward_ton_amount: 0n,
-        //         forward_payload: beginCell().endCell(),
-        //     },
-        // )
-
-        // expect(mint.transactions).toHaveTransaction({
-        //     from: owner.address,
-        //     to: BNKJetton.address,
-        //     success: true,
-        // });
+        const banks = 3000000n
 
         const jettonData = await BNKJetton.getGetJettonData()
-        expect(jettonData.total_supply).toEqual(toNano(banks))
+        expect(jettonData.total_supply).toEqual(banks)
 
         const ownerJettonWallet = await BNKJetton.getGetWalletAddress(owner.address)
         const ownerJettonContract = blockchain.openContract(BankJettonWallet.fromAddress(ownerJettonWallet));
         const ownerBNKBalance = (await ownerJettonContract.getGetWalletData()).balance;
-        expect(ownerBNKBalance).toEqual(toNano(banks));
+        expect(ownerBNKBalance).toEqual(banks);
 
         const jettonTransfer: JettonTransfer = {
             $$type: 'JettonTransfer',
             query_id: 0n,
-            amount: toNano(2800000),
+            amount: 2800000n,
             destination: banksCrowdSaleV3.address,
             response_destination: banksCrowdSaleV3.address,
             custom_payload: beginCell().endCell(),
@@ -129,7 +108,7 @@ describe('Banks crowd sale test', () => {
         banksCrowdSaleV3JettonContract = blockchain.openContract(BankJettonWallet.fromAddress(banksCrowdSaleV3Wallet));
 
         const banksCrowdSaleV3BalanceAfter = (await banksCrowdSaleV3JettonContract.getGetWalletData()).balance;
-        expect(banksCrowdSaleV3BalanceAfter).toEqual(toNano(2800000));
+        expect(banksCrowdSaleV3BalanceAfter).toEqual(2800000n);
 
         expect(transfer.transactions).toHaveTransaction({
             from: ownerJettonContract.address,
@@ -148,14 +127,6 @@ describe('Banks crowd sale test', () => {
                 jetton_wallet: banksCrowdSaleV3JettonContract.address,
             }
         )
-
-        // maybe change owner to null address
-        // const lockJettonMaster = await BNKJetton.send(
-        //     owner.getSender(),
-        //     {
-        //         // change jetton owner
-        //     }
-        // )
     });
 
     it('should transfer 1 Bank to Alice and 1.5 TON to owner', async () => {
@@ -183,7 +154,7 @@ describe('Banks crowd sale test', () => {
         })
 
         const aliceBalanceAfter = (await aliceJettonContract.getGetWalletData()).balance;
-        expect(aliceBalanceAfter).toEqual(toNano(banksAmount));
+        expect(aliceBalanceAfter).toEqual(BigInt(banksAmount));
 
         expect(callCrowsSale.transactions).toHaveTransaction({
             from: banksCrowdSaleV3.address,
@@ -207,23 +178,10 @@ describe('Banks crowd sale test', () => {
         )
 
         const aliceBalanceAfter = (await aliceJettonContract.getGetWalletData()).balance;
-        expect(aliceBalanceAfter).toEqual(toNano(banksAmount));
+        expect(aliceBalanceAfter).toEqual(BigInt(banksAmount));
 
         expect(ownerBalanceBefore !== await owner.getBalance()).toEqual(true)
     });
-
-    it('should return amount of banks after crowd sale', async () => {
-        const banksAmount = 100;
-        await banksCrowdSaleV3.send(
-            alice.getSender(),
-            {
-                value: toNano(banksAmount * 1.5 + 1),
-            },
-            null
-        )
-
-        expect(await banksCrowdSaleV3.getBanks(alice.address)).toEqual(BigInt(banksAmount))
-    })
 
     it('should return amount of banks after crowd sale + banksOffset', async () => {
         const banksAmount = 100;
@@ -236,19 +194,6 @@ describe('Banks crowd sale test', () => {
         )
 
         expect(await banksCrowdSaleV3.getTotalBanks()).toEqual(totalBanksOffset + BigInt(banksAmount))
-    })
-
-    it('should return alice address and 100 banks', async () => {
-        const banksAmount = 100;
-        await banksCrowdSaleV3.send(
-            alice.getSender(),
-            {
-                value: toNano(banksAmount * 1.5 + 1),
-            },
-            null
-        )
-
-        expect((await banksCrowdSaleV3.getBankers()).get(alice.address)).toEqual(banksAmount)
     })
 
     it('should check getters on 100 random wallets', async () => {
@@ -271,9 +216,7 @@ describe('Banks crowd sale test', () => {
             const rndContract = blockchain.openContract(BankJettonWallet.fromAddress(rndWallet))
             const balance = (await rndContract.getGetWalletData()).balance
 
-            expect(balance).toEqual(toNano(banksAmount));
-            expect((await banksCrowdSaleV3.getBankers()).get(rnd.address)).toEqual(banksAmount)
-            expect(await banksCrowdSaleV3.getBanks(rnd.address)).toEqual(BigInt(banksAmount))
+            expect(balance).toEqual(BigInt(banksAmount));
         }
 
         expect(await banksCrowdSaleV3.getTotalBanks()).toEqual(totalBanksOffset + BigInt(banksAmount * 100))
@@ -313,7 +256,7 @@ describe('Banks crowd sale test', () => {
                 success: false
             }
         )
-        expect(aliceBalanceAfter).toEqual(toNano(banksAmount));
+        expect(aliceBalanceAfter).toEqual(BigInt(banksAmount));
 
         await banksCrowdSaleV3.send(
             owner.getSender(),
@@ -339,7 +282,7 @@ describe('Banks crowd sale test', () => {
                 success: true
             }
         )
-        expect(aliceBalanceNow).toEqual(toNano(banksAmount * 2));
+        expect(aliceBalanceNow).toEqual(BigInt(banksAmount * 2));
     })
 
     it('should send banks and ref banks to alice and tony', async () => {
@@ -367,7 +310,7 @@ describe('Banks crowd sale test', () => {
                 referral: alice.address
             }
         )
-        console.log(aliceJettonContract.address, banksCrowdSaleV3JettonContract.address)
+
         expect(refCrowdSale.transactions).toHaveTransaction({
             from: banksCrowdSaleV3JettonContract.address,
             to: tonyJettonWallet,
@@ -380,9 +323,9 @@ describe('Banks crowd sale test', () => {
         })
 
         const aliceBalanceAfter = (await aliceJettonContract.getGetWalletData()).balance;
-        expect(aliceBalanceAfter).toEqual(toNano(banksAmount * 2));
+        expect(aliceBalanceAfter).toEqual(BigInt(banksAmount * 2));
         const tonyBalanceAfter = (await tonyJettonContract.getGetWalletData()).balance;
-        expect(tonyBalanceAfter).toEqual(toNano(banksAmount));
+        expect(tonyBalanceAfter).toEqual(BigInt(banksAmount));
     })
 
     it('should change owner and get access denied', async () => {

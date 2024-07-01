@@ -62,13 +62,13 @@ export function buildOnchainMetadata(data: {
         .endCell();
 }
 
-export function getJettonTransferBuilder(address: Address, amount: bigint | number): JettonTransfer {
+export function getJettonTransferBuilder(address: Address, amount: bigint | number, response_address: Address=address, decimal: boolean = true): JettonTransfer {
     return {
         $$type: 'JettonTransfer',
         query_id: 0n,
-        amount: toNano(amount),
+        amount: decimal ? toNano(amount) : BigInt(amount),
         destination: address,
-        response_destination: address,
+        response_destination: response_address,
         custom_payload: beginCell().endCell(),
         forward_ton_amount: 0n,
         forward_payload: beginCell().endCell(),

@@ -22,7 +22,7 @@ contract ArcJettonWallet with JettonWallet {
 
 
 
-contract ArcJetton with JettonMaster, Deployable, Ownable {
+contract ArcJetton with JettonMaster, Deployable, OwnableTransferable {
     total_supply: Int as coins = 0;
     mintable: Bool = true;
     owner: Address;

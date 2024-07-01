@@ -36,9 +36,9 @@ contract BankJettonWallet with JettonWallet {
     }
 }
 
-contract BankJetton with JettonMaster, Deployable,  Ownable{ 
+contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
     total_supply: Int as coins = 0;
-    max_supply: Int as coins = ton("3000000");
+    max_supply: Int as coins = 3000000;
     mintable: Bool = false;
     owner: Address;
     jetton_content: Cell;

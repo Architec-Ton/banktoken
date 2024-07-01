@@ -36,7 +36,7 @@ describe('BNK  jetton test', () => {
         const ownerWalletAddress = await jettonMaster.getGetWalletAddress(owner.address)
         ownerJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(ownerWalletAddress));
         const ownerBNKBalanceInit = (await ownerJettonContract.getGetWalletData()).balance;
-        expect(ownerBNKBalanceInit).toEqual(toNano(3_000_000n));
+        expect(ownerBNKBalanceInit).toEqual(3_000_000n);
 
         expect(deployResult.transactions).toHaveTransaction({
             from: owner.address,
@@ -65,7 +65,7 @@ describe('BNK  jetton test', () => {
                 query_id: 0n,
                 destination: alice.address, 
                 response_destination: alice.address,
-                amount:  toNano(1n),
+                amount:  1n,
                 custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
                 forward_payload: beginCell().endCell()
@@ -98,7 +98,7 @@ describe('BNK  jetton test', () => {
         // Check that Alice's jetton wallet balance is 1
         const aliceJettonContract = blockchain.openContract(await BankJettonWallet.fromAddress(aliceWalletAddress));
         const aliceBalanceAfter = (await aliceJettonContract.getGetWalletData()).balance;
-        expect(aliceBalanceAfter).toEqual(0n + 1000000000n);
+        expect(aliceBalanceAfter).toEqual(1n);
     });
 
     it('should Alice send 1 token to Bob', async () => {
@@ -113,7 +113,7 @@ describe('BNK  jetton test', () => {
                 query_id: 0n,
                 destination: alice.address, 
                 response_destination: alice.address,
-                amount: toNano(1n),
+                amount: 1n,
                 custom_payload: beginCell().endCell(),
                 forward_ton_amount: 0n,
                 forward_payload:beginCell().endCell()
@@ -164,7 +164,7 @@ describe('BNK  jetton test', () => {
         const transfterResult = await aliceJettonContract.send(
             alice.getSender(),
             {
-                value: toNano('1'),
+                value: toNano(1n),
             },
             jettonTransfer,
         );
