@@ -49,6 +49,7 @@ contract BankStaking with Deployable {
             body:Add {
                 queryId: stake.query_id, //Int as uint64;
                 amount:  stake.amount, //Int as uint32;
+                stakerWallet: context().sender,
                 previousCell: self.lastCell, // Address;
                 nextCell: self.firstCell // Address;
             }.toCell(),
@@ -135,7 +136,7 @@ contract BankStaking with Deployable {
         let ctx: Context = context();
         let stakingAddress:Address = contractAddress(initOf StakeStorage(_msg.to ,self.BNKjetton));
         // require(ctx.sender == stakingAddress,  "Not allowed sender");
-        dump("redeem");
+        // dump("redeem");
         // dump(_msg.to);
         // dump(_msg.rewardAmount);
         // dump(_msg.stakedAmount);
@@ -153,7 +154,7 @@ contract BankStaking with Deployable {
             body:mint.toCell()
         });
 
-        let walletAddress:Address = _msg.bnk_stake_wallet_address;//contractAddress(initOf BankJettonWallet(myAddress() , self.BNKjetton));
+        let walletAddress:Address = self.ARCjetton; // FAKE right is _msg.bnk_stake_wallet_address;//contractAddress(initOf BankJettonWallet(myAddress() , self.BNKjetton));
         // dump (myAddress());
         // dump (walletAddress);
         // dump (_msg.to);

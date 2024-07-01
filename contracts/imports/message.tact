@@ -7,13 +7,13 @@ message PassScoreToRoundContract {
 struct StakingData {
     index: Int as uint64;
     this_contract_jettonWallet: Address;
-    total_score: Int as coins;
-    parameter: Int as uint16;
+    // total_score: Int as coins;
+    // parameter: Int as uint16;
 }
 struct StakeRecord {
     stake_address: Address;
     jettonStakeAmount: Int as coins;
-    score: Int as uint128; // TODO: 可以後面刪掉
+    // score: Int as uint128; // TODO: 可以後面刪掉
 }
 
 // stake_storage.tact
@@ -62,17 +62,22 @@ message Mint{
     amount: Int; 
 }
 // ================================================================================ //
-// bank_staking.tact
+// bankstaking
+message Stake {
+    // stake_wallet_address: Address;
+    query_id: Int as uint64;
+    amount: Int as coins;
+    // score: Int as uint128; // TODO: 可以後面刪掉
+}
+
 message AddingJettonAddress {
     this_contract_jettonWallet: Address;
 }
 message Unstake {
     applied_user_address: Address;
-    bnk_stake_wallet_address: Address;
 }
 message Redeem {
     to: Address;
-    bnk_stake_wallet_address: Address;
     stakedAmount: Int ;
     rewardAmount: Int ;
 }
@@ -83,6 +88,7 @@ message Redeem {
 message Add {
     queryId: Int as uint64;
     amount: Int as uint32;
+    stakerWallet: Address;
     previousCell: Address;
     nextCell: Address;
 }
@@ -108,6 +114,9 @@ message UpdateNext {
     nextCell: Address;
 }
 
+message ChangeMinter {
+    newMinter: Address;
+}
 
 
 

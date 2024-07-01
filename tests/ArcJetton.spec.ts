@@ -112,7 +112,7 @@ describe('ARC jetton test', () => {
     it('should mint 1 token to Alice', async () => {
         // Mint 1 token to Alice
         const mintyResult = await jettonMaster.send(
-            alice.getSender(),
+            owner.getSender(),
             {
                 value: toNano('1'),
             },
@@ -126,7 +126,7 @@ describe('ARC jetton test', () => {
 
         // Check that Alice send "Mint:1" msg to JettonMaster
         expect(mintyResult.transactions).toHaveTransaction({
-            from: alice.address,
+            from: owner.address,
             to: jettonMaster.address,
             success: true,
         });
@@ -155,7 +155,7 @@ describe('ARC jetton test', () => {
     it('should Alice send 1 token to Bob', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
         await jettonMaster.send(
-            alice.getSender(),
+            owner.getSender(),
             {
                 value: toNano('1'),
             },
@@ -173,7 +173,7 @@ describe('ARC jetton test', () => {
         // Mint 1 token to Bob first to build his jetton wallet
         const bob = await blockchain.treasury('bob');
         const mintyResult = await jettonMaster.send(
-            bob.getSender(),
+            owner.getSender(),
             {
                 value: toNano('1'),
             },
@@ -238,7 +238,7 @@ describe('ARC jetton test', () => {
     it('should Alice burn 1 token', async () => {
         // Mint 1 token to Alice first to build her jetton wallet
         const mintyResult = await jettonMaster.send(
-            alice.getSender(),
+            owner.getSender(),
             {
                 value: toNano('1'),
             },

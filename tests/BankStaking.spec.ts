@@ -9,10 +9,10 @@ import * as AJ /* { ArcJetton, JettonBurn } */ from '../build/ArcJetton/tact_Arc
 import * as AJW /* { ArcJettonWallet, JettonTransfer } */ from '../build/ArcJetton/tact_ArcJettonWallet';
 import { StakeStorage } from '../wrappers/StakeStorage';
 
-describe('BankStaking', () => {
+describe('Bank Staking', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
-    let bankStaking: SandboxContract<BankStaking>;
+    // let bankStaking: SandboxContract<BankStaking>;
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;
     let bankJetton: SandboxContract<BJ.BankJetton>;
@@ -54,6 +54,7 @@ describe('BankStaking', () => {
                 queryId: 0n,
             },
         );
+        // console.log("bankJetton:", bankJetton.address);
 
         expect(deployResultBNK.transactions).toHaveTransaction({
             from: owner.address,
@@ -85,25 +86,25 @@ describe('BankStaking', () => {
             success: true,
         });
 
-        bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, ARCJetton.address));
+        // bankStaking = blockchain.openContract(await BankStaking.fromInit(alice.address, bankJetton.address, ARCJetton.address));
 
-        const deployResultBS = await bankStaking.send(
-            deployer.getSender(),
-            {
-                value: toNano('10'),
-            },
-            {
-                $$type: 'Deploy',
-                queryId: 0n,
-            },
-        );
+        // const deployResultBS = await bankStaking.send(
+        //     deployer.getSender(),
+        //     {
+        //         value: toNano('10'),
+        //     },
+        //     {
+        //         $$type: 'Deploy',
+        //         queryId: 0n,
+        //     },
+        // );
 
-        expect(deployResultBS.transactions).toHaveTransaction({
-            from: deployer.address,
-            to: bankStaking.address,
-            deploy: true,
-            success: true,
-        });
+        // expect(deployResultBS.transactions).toHaveTransaction({
+        //     from: deployer.address,
+        //     to: bankStaking.address,
+        //     deploy: true,
+        //     success: true,
+        // });
 
         ownerWalletAddress = await bankJetton.getGetWalletAddress(owner.address);
         ownerBNKJettonContract = blockchain.openContract( BJW.BankJettonWallet.fromAddress(ownerWalletAddress));
@@ -133,30 +134,27 @@ describe('BankStaking', () => {
         // Alice's jetton wallet address
         const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
+        console.log ("aliceWalletAddress:", aliceWalletAddress)
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
+        const jettonStake: BJW.Stake = {
+            $$type: 'Stake',
             query_id: 0n,
             amount: 1n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
+            
         };
         const transferResult = await aliceJettonContract.send(
             alice.getSender(),
             {
                 value: toNano('2'),
             },
-            jettonTransfer,
+            jettonStake,
         );
         //printTransactionFees(transferResult.transactions);
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
         const amountTime = await stakeStorage.getAmountTime(alice.address);
@@ -180,15 +178,11 @@ describe('BankStaking', () => {
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
+        const jettonTransfer: BJW.Stake = {
+            $$type: 'Stake',
             query_id: 0n,
             amount: 1n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
+            
         };
         const transferResult = await aliceJettonContract.send(
             alice.getSender(),
@@ -201,7 +195,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
 
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
@@ -220,16 +214,11 @@ describe('BankStaking', () => {
         const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
-
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
+        const jettonTransfer: BJW.Stake = {
+            $$type: 'Stake',
             query_id: 0n,
             amount: 10n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
+            
         };
         const transferResult = await aliceJettonContract.send(
             alice.getSender(),
@@ -242,7 +231,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
 
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
@@ -273,15 +262,11 @@ describe('BankStaking', () => {
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
+        const jettonTransfer: BJW.Stake = {
+            $$type: 'Stake',
             query_id: 0n,
             amount: 100n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
+            
         };
         const transferResult = await aliceJettonContract.send(
             alice.getSender(),
@@ -294,7 +279,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
 
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
@@ -314,16 +299,13 @@ describe('BankStaking', () => {
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
+        const jettonTransfer: BJW.Stake = {
+            $$type: 'Stake',
             query_id: 0n,
             amount: 1000n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
+            
         };
+
         const transferResult = await aliceJettonContract.send(
             alice.getSender(),
             {
@@ -335,7 +317,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
 
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
@@ -352,17 +334,12 @@ describe('BankStaking', () => {
         // Alice's jetton wallet
         const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
 
-        const jettonTransfer: BJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
+        const jettonTransfer: BJW.Stake = {
+            $$type: 'Stake',
             query_id: 0n,
             amount: 10_000n,
-            destination: bankStaking.address,
-            response_destination: bankStaking.address,
-            custom_payload: null,
-            forward_ton_amount: toNano('1'),
-            forward_payload: beginCell().endCell(),
+            
         };
-
         await aliceJettonContract.send(
             alice.getSender(),
             {
@@ -374,7 +351,7 @@ describe('BankStaking', () => {
 
         // Check that Alice sent JettonTransfer to staking
 
-        const stakeStorageAddr = await bankStaking.getCalculateStakeAddress(alice.address, bankJetton.address);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
 
 
         const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));

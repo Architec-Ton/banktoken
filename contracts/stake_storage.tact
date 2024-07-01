@@ -2,6 +2,7 @@
 // import "@stdlib/Ownable";
 // import "./storage.tact";
 import "./imports/message.tact";
+import "./jetton/JettonWallet.tact";
 
 trait Storage /* with Ownable  with Deployable */ {
 
@@ -50,9 +51,6 @@ trait Storage /* with Ownable  with Deployable */ {
     get fun  prevnextcells(): PrevNextCells {
         return PrevNextCells{previous: self.previousCell, next:  self.nextCell};
     }
-
-
-
 }
 
 
@@ -64,31 +62,34 @@ contract StakeStorage with  Storage {
     factory: Address;
     owner: Address;
     empty: Bool = true;
-
+    stakerWallet: Address;
 
     init(_owner: Address, _factory:Address) {
 
         self.previousCell = newAddress(0,0);
         self.nextCell =  newAddress(0,0);
+        self.stakerWallet = newAddress(0,0);
         self.factory = _factory;
         self.owner = _owner;
     }
 
     receive(_msg: Add) {
         let ctx: Context = context(); // Check sender
-        // require(ctx.sender == self.bankStake, "Invalid sender");
-        // require(self.empty, "Already filled");
+        require(ctx.sender == self.factory, "Invalid sender");
+        require(self.empty, "Already filled");
         self.amount += _msg.amount;
         self.updatetime = now();
         self.previousCell= _msg.previousCell;
         self.nextCell = _msg.nextCell;
-        self.empty = false;
+        self.stakerWallet = _msg.stakerWallet;
+        self.empty = false;        
     }
 
     receive (_msg: GetWeighted) {
 
         let ctx: Context = context();
-        // todo (require ctx.sender == self.bankStake, "wrong call" );
+        require (ctx.sender == self.factory, "wrong call" );
+        require(_msg.applied_user_address == self.owner, "Not owner");
         let mint: Mint = Mint{
         to: _msg.applied_user_address,
         amount: self.score_function()
@@ -103,26 +104,45 @@ contract StakeStorage with  Storage {
         );
         self.updatetime = now();
     }
-    receive (_msg: Unstake) {
 
+
+    receive (_msg: Unstake) {
+        // dump("unstake");
         let ctx: Context = context();
-        // todo (require ctx.sender == self.bankStake, "wrong call" );
-        let redeem: Redeem = Redeem{
-        to: _msg.applied_user_address,
-        bnk_stake_wallet_address: _msg.bnk_stake_wallet_address,
-        stakedAmount: self.amount,
-        rewardAmount: self.score_function()
+        require (ctx.sender == self.factory, "wrong call" );
+        require(_msg.applied_user_address == self.owner, "Not owner");
+        let mint: Mint = Mint{
+            to: self.owner, //_msg.applied_user_address,
+            amount: self.score_function()
         };
         send(SendParameters{
-        to: ctx.sender,
-        value: 0,
-        mode: (SendRemainingValue /* + SendIgnoreErrors */),
-        bounce: true,
-        body:redeem.toCell()
-        }
-        );
+            to: ctx.sender,
+            value: ton("1"),
+            mode: ( SendIgnoreErrors ),
+            bounce: true,
+            body:mint.toCell()
+            });
+        // dump ("returnBNK");
+        send(SendParameters{
+            to: self.stakerWallet,
+            value: 0,
+            mode: (SendRemainingValue  + SendIgnoreErrors  ),
+            bounce: true, // 0x7362d09c - notify new owner
+            body: JettonTransfer{
+                query_id: 0,
+                amount: self.amount,
+                destination:  self.owner, 
+                response_destination:  self.owner,
+                custom_payload: null,
+                forward_ton_amount:0,
+                forward_payload: emptySlice()
+            }.toCell()
+        });
+
         self.amount= 0;
         self.updatetime = now();
+        self.empty = false;        
+
     }
     get fun amountTime(_for: Address): AmountTime {
         return   AmountTime{for: _for,
