@@ -6,8 +6,9 @@ import { Multisig, Request } from '../build/Multisig/tact_Multisig';
 import { MultisigSigner } from '../build/Multisig/tact_MultisigSigner';
 import { BankJetton, JettonTransfer, storeJettonTransfer } from '../build/BankJetton/tact_BankJetton';
 import { BankJettonWallet } from '../build/BankJetton/tact_BankJettonWallet';
-import { ArcJetton } from '../build/ArcJetton/tact_ArcJetton';
+import { ArcJetton, ChangeMinter, ChangeOwner, Mint, storeChangeOwner, storeMint } from '../build/ArcJetton/tact_ArcJetton';
 import { ArcJettonWallet } from '../build/ArcJetton/tact_ArcJettonWallet';
+import { storeChangeMinter } from '../wrappers/BankStaking';
 
 
 describe('Multisig', () => {
@@ -447,4 +448,232 @@ describe('Multisig', () => {
         })
     });
 
+
+    it('should change ownership to Alice', async () => {
+        const jetton_content: Cell = beginCell().endCell();
+        const arcJettonContract = blockchain.openContract(await ArcJetton.fromInit(owner2.address, jetton_content));
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano('1'),
+            },
+            {
+                $$type: 'Deploy',
+                queryId: 0n,
+            },
+        );
+
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano(0.5)
+            },
+            {
+                $$type: 'Mint',
+                to: multisig.address,
+                amount: 2000n,
+            }
+        )
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano(0.5)
+            },
+            {
+                $$type: 'ChangeOwner',
+                newOwner: multisig.address,
+                queryId:0n,
+            }
+        )
+
+        const ownerBefore = await arcJettonContract.getOwner()
+        expect(ownerBefore).toEqualAddress(multisig.address)
+
+        const alice = await blockchain.treasury('alice');
+
+        const changeOwner: ChangeOwner = {
+            $$type: 'ChangeOwner',
+            queryId: 0n,
+            newOwner: alice.address,
+
+        }
+
+        const request: Request = {
+            $$type: 'Request',
+            requested: arcJettonContract.address,
+            to: arcJettonContract.address,
+            value: toNano(1),
+            timeout: BigInt(blockchain.now + 100),
+            bounce: true,
+            mode: 2n,
+            body: beginCell().store(storeChangeOwner(changeOwner)).endCell()
+        };
+
+        await multisig.send(
+            owner1.getSender(),
+            {
+                value: toNano(100)
+            },
+            request
+        );
+
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
+        for (let i of [owner1, owner2, owner3]) {
+            await multisigSignerContract.send(
+                i.getSender(),
+                {
+                    value: toNano(0.05)
+                },
+                'YES'
+            );
+        }
+
+        // const aliceJettonWallet = await arcJettonContract.getGetWalletAddress(alice.address)
+        // const aliceJettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(aliceJettonWallet))
+
+        const ownerAfter = await arcJettonContract.getOwner()
+        expect(ownerAfter).toEqualAddress(alice.address)
+    });
+
+    it('should change minter on ARC', async () => {
+        const jetton_content: Cell = beginCell().endCell();
+        const arcJettonContract = blockchain.openContract(await ArcJetton.fromInit(owner2.address, jetton_content));
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano('1'),
+            },
+            {
+                $$type: 'Deploy',
+                queryId: 0n,
+            },
+        );
+
+        const alice = await blockchain.treasury('alice');
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano(0.5)
+            },
+            {
+                $$type: 'Mint',
+                to: alice.address,
+                amount: 2000n,
+            }
+        )
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano(0.5)
+            },
+            {
+                $$type: 'ChangeMinter',
+                newMinter: multisig.address,
+             
+            }
+        )
+
+
+        const mint: Mint = {
+            $$type: 'Mint',
+            to: alice.address,
+            amount: 2000n,
+
+        }
+
+        const request: Request = {
+            $$type: 'Request',
+            requested: arcJettonContract.address,
+            to: arcJettonContract.address,
+            value: toNano(1),
+            timeout: BigInt(blockchain.now + 100),
+            bounce: true,
+            mode: 2n,
+            body: beginCell().store(storeMint(mint)).endCell()
+        };
+
+        await multisig.send(
+            owner1.getSender(),
+            {
+                value: toNano(100)
+            },
+            request
+        );
+
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
+        for (let i of [owner1, owner2, owner3]) {
+            await multisigSignerContract.send(
+                i.getSender(),
+                {
+                    value: toNano(0.05)
+                },
+                'YES'
+            );
+        }
+
+        const aliceJettonWallet = await arcJettonContract.getGetWalletAddress(alice.address)
+        const aliceJettonContract = blockchain.openContract(ArcJettonWallet.fromAddress(aliceJettonWallet))
+        const aliceBalanceAfter = await aliceJettonContract.getGetWalletData()
+        expect(aliceBalanceAfter.balance).toEqual(4000n)
+
+        const changeMinter: ChangeMinter = {
+            $$type: 'ChangeMinter',
+            newMinter: owner2.address,
+        }
+
+        const request2: Request = {
+            $$type: 'Request',
+            requested: arcJettonContract.address,
+            to: arcJettonContract.address,
+            value: toNano(1),
+            timeout: BigInt(blockchain.now + 100),
+            bounce: true,
+            mode: 2n,
+            body: beginCell().store(storeChangeMinter(changeMinter)).endCell()
+        };
+
+        await multisig.send(
+            owner1.getSender(),
+            {
+                value: toNano(100)
+            },
+            request2
+        );
+
+        const multisigSignerWallet2 = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerContract2 = blockchain.openContract(multisigSignerWallet2);
+        for (let i of [owner1, owner2, owner3]) {
+            await multisigSignerContract2.send(
+                i.getSender(),
+                {
+                    value: toNano(0.05)
+                },
+                'YES'
+            );
+        }
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano(0.5)
+            },
+            {
+                $$type: 'Mint',
+                to: alice.address,
+                amount: 2000n,
+            }
+        )
+
+        
+        const aliceBalanceAfter2 = await aliceJettonContract.getGetWalletData()
+        expect(aliceBalanceAfter.balance).toEqual(6000n)
+    });
 });
