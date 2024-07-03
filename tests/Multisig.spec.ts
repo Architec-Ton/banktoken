@@ -634,33 +634,47 @@ describe('Multisig', () => {
             requested: arcJettonContract.address,
             to: arcJettonContract.address,
             value: toNano(1),
-            timeout: BigInt(blockchain.now + 100),
+            timeout: BigInt(blockchain.now + 123),
             bounce: true,
             mode: 2n,
             body: beginCell().store(storeChangeMinter(changeMinter)).endCell()
         };
 
-        await multisig.send(
+        const req2send =  await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(100)
             },
             request2
         );
-
-        const multisigSignerWallet2 = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        expect(req2send.transactions).toHaveTransaction({
+            from: owner1.address,
+            to: multisig.address,
+            success: true
+        });
+        const multisigSignerWallet2 = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request2);
         const multisigSignerContract2 = blockchain.openContract(multisigSignerWallet2);
+
+        const savedReq = await multisigSignerContract2.getRequest();
+        expect(savedReq.timeout).toEqual(request2.timeout);
+
         for (let i of [owner1, owner2, owner3]) {
-            await multisigSignerContract2.send(
+            const voteTX = await multisigSignerContract2.send(
                 i.getSender(),
                 {
                     value: toNano(0.05)
                 },
                 'YES'
             );
+            expect(voteTX.transactions).toHaveTransaction({
+                from: i.address,
+                to: multisigSignerContract2.address,
+                success: true
+            });
+
         }
 
-        await arcJettonContract.send(
+        const restrMinterTX    = await arcJettonContract.send(
             owner2.getSender(),
             {
                 value: toNano(0.5)
@@ -672,8 +686,13 @@ describe('Multisig', () => {
             }
         )
 
-        
+        expect(restrMinterTX.transactions).toHaveTransaction({
+            from: owner2.address,
+            to: arcJettonContract.address,
+            success: true
+        });
+
         const aliceBalanceAfter2 = await aliceJettonContract.getGetWalletData()
-        expect(aliceBalanceAfter.balance).toEqual(6000n)
+        expect(aliceBalanceAfter2.balance).toEqual(6000n)
     });
 });
