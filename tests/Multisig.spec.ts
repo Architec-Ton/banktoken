@@ -542,7 +542,7 @@ describe('Multisig', () => {
     it('should change minter on ARC', async () => {
         const jetton_content: Cell = beginCell().endCell();
         const arcJettonContract = blockchain.openContract(await ArcJetton.fromInit(owner2.address, jetton_content));
-
+        console.log(arcJettonContract.address)
         await arcJettonContract.send(
             owner2.getSender(),
             {
@@ -577,6 +577,18 @@ describe('Multisig', () => {
                 $$type: 'ChangeMinter',
                 newMinter: multisig.address,
              
+            }
+        )
+
+        await arcJettonContract.send(
+            owner2.getSender(),
+            {
+                value: toNano(0.5)
+            },
+            {
+                $$type: 'ChangeOwner',
+                newOwner: multisig.address,
+                queryId: 0n
             }
         )
 
@@ -671,6 +683,14 @@ describe('Multisig', () => {
                 to: multisigSignerContract2.address,
                 success: true
             });
+
+            if (i === owner3) {
+                expect(voteTX.transactions).toHaveTransaction({
+                    from: multisig.address,
+                    to: arcJettonContract.address,
+                    success: true
+                });
+            }
 
         }
 

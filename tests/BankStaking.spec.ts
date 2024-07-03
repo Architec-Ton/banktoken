@@ -1,12 +1,10 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { toNano, beginCell, Address } from '@ton/core';
-import { BankStaking } from '../wrappers/BankStaking';
+import { Address, beginCell, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { buildOnchainMetadata } from '../utils/jetton-helpers';
-import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
-import * as BJW /* { BankJettonWallet, JettonTransfer } */ from '../build/BankJetton/tact_BankJettonWallet';
-import * as AJ /* { ArcJetton, JettonBurn } */ from '../build/ArcJetton/tact_ArcJetton';
-import * as AJW /* { ArcJettonWallet, JettonTransfer } */ from '../build/ArcJetton/tact_ArcJettonWallet';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
+import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
+import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import { StakeStorage } from '../wrappers/StakeStorage';
 
 describe('Bank Staking', () => {
@@ -27,12 +25,14 @@ describe('Bank Staking', () => {
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
         image: 'https://www.com/BNKjetton.json',
+        decimals: '0'
     };
     const ARCjettonParams = {
         name: 'ARC jetton',
         description: 'This is description for ARC jetton',
         symbol: 'ARC',
         image: 'https://www.com/ARCjetton.json',
+        decimals: '9'
     };
 
     beforeEach(async () => {

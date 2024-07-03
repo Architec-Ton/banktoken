@@ -83,6 +83,10 @@ contract Multisig with Deployable {
         self.seqno = 0;
     }
 
+    receive() {
+        // for get tons
+    }
+
     // Request new pending transaction
     receive(msg: Request) {
 

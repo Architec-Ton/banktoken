@@ -31,7 +31,7 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
     jetton_wallet: Address;
 
     const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
-    const jetton_transfer_fee: Int = ton("0.4"); // ~ 0.4 TON, medium fee for any amount of Jetton is 0.037 TON - docs
+    const jetton_transfer_fee: Int = ton("0.07"); // ~ 0.4 TON, medium fee for any amount of Jetton is 0.037 TON - docs
     // but we deploy buyer's JettonWallet, so gas is big ~ 0.2 - 0.3
 
     init() {

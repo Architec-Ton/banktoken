@@ -32,7 +32,8 @@ describe('ARC jetton test', () => {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/ARCjetton.png"
+        image: "https://www.com/ARCjetton.png",
+        decimals: '9'
     };
     
     const BNKjettonParams = {
@@ -40,6 +41,7 @@ describe('ARC jetton test', () => {
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
         image: 'https://www.com/BNKjetton.json',
+        decimals: '0'
     };
 
     beforeEach(async () => {
@@ -303,7 +305,7 @@ describe('ARC jetton test', () => {
     it('get token data ', async () => {
         const getKeys = async () => {
             const metadataKeys = new Map<bigint, string>()
-            const metadata = ['name', 'description', 'symbol', 'image']
+            const metadata = ['name', 'description', 'symbol', 'image', 'decimals'];
 
             for (let i of metadata) {
                 const sha256View = await sha256(i)
@@ -339,7 +341,8 @@ describe('ARC jetton test', () => {
             name: deserializeHashMap.get('name'),
             description: deserializeHashMap.get('description'),
             symbol: deserializeHashMap.get('symbol'),
-            image: deserializeHashMap.get('image')
+            image: deserializeHashMap.get('image'),
+            decimals: deserializeHashMap.get('decimals')
         }
 
         expect(jettonContent).toEqual(jettonParams);
@@ -348,7 +351,7 @@ describe('ARC jetton test', () => {
     it('get token data ', async () => {
         const getKeys = async () => {
             const metadataKeys = new Map<bigint, string>();
-            const metadata = ['name', 'description', 'symbol', 'image'];
+            const metadata = ['name', 'description', 'symbol', 'image', 'decimals'];
 
             for (let i of metadata) {
                 const sha256View = await sha256(i);
@@ -386,6 +389,7 @@ describe('ARC jetton test', () => {
             description: deserializeHashMap.get('description'),
             symbol: deserializeHashMap.get('symbol'),
             image: deserializeHashMap.get('image'),
+            decimals: deserializeHashMap.get('decimals')
         };
 
         expect(jettonContent).toEqual(jettonParams);

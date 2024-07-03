@@ -47,6 +47,7 @@ export function buildOnchainMetadata(data: {
     name: string;
     description: string;
     image: string;
+    decimals: string;
 }): Cell {
     let dict = Dictionary.empty(
         Dictionary.Keys.BigUint(256),

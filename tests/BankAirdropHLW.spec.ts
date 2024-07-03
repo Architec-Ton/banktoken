@@ -30,7 +30,8 @@ describe('ARC Airdrop test', () => {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/BankJetton.png"
+        image: "https://www.com/BankJetton.png",
+        decimals: '0'
     };
 
     beforeEach(async () => {
@@ -135,8 +136,6 @@ describe('ARC Airdrop test', () => {
 
         const HLWv3BalanceAfter = (await HLWv3JettonContract.getGetWalletData()).balance;
         expect(HLWv3BalanceAfter).toEqual(2700000n);
-
-        // maybe change owner to null address
     });
 
     it('should airdrop to 254 addresses', async () => {

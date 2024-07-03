@@ -32,7 +32,8 @@ describe('ARC Airdrop test', () => {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/ARCjetton.png"
+        image: "https://www.com/ARCjetton.png",
+        decimals: '9'
     };
 
     const BNKjettonParams = {
@@ -40,6 +41,7 @@ describe('ARC Airdrop test', () => {
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
         image: 'https://www.com/BNKjetton.json',
+        decimals: '0'
     };
 
     beforeEach(async () => {

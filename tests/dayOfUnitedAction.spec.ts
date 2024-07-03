@@ -61,14 +61,15 @@ describe('Independence Day', () => {
         name: 'BNK jetton',
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
-        image: 'https://www.com/BNKjetton.json'
-        // decimals: 0n
+        image: 'https://www.com/BNKjetton.json',
+        decimals: '0'
     };
     const ARCjettonParams = {
         name: 'ARC jetton',
         description: 'This is description for ARC jetton',
         symbol: 'ARC',
-        image: 'https://www.com/ARCjetton.json'
+        image: 'https://www.com/ARCjetton.json',
+        decimals: '9'
     };
 
     let bankJettonMaster: SandboxContract<BJ.BankJetton>;
@@ -87,7 +88,7 @@ describe('Independence Day', () => {
         blockchain = await Blockchain.create();
         blockchain.now = 1000;
 
-        for (let i = 0; i < 100; ++i) {
+        for (let i = 0; i < 300; ++i) {
             bankers.push({
                 contract: await blockchain.treasury('banker' + i.toString()),
                 banksAmount: BigInt(randomInt(10, 100))
@@ -118,7 +119,12 @@ describe('Independence Day', () => {
             )
         );
 
-        await highloadWalletV3.sendDeploy(deployer.getSender(), toNano('99999'));
+        const deployResult = await highloadWalletV3.sendDeploy(deployer.getSender(), toNano('99999'));
+        expect(deployResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: highloadWalletV3.address,
+            deploy: true
+        });
 
         owner1 = await blockchain.treasury('owner1');
         owner2 = await blockchain.treasury('owner2');
@@ -129,13 +135,12 @@ describe('Independence Day', () => {
         members.set(owner3.address, 1n);
 
         multisig = blockchain.openContract(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
-
         const multisigDeploy: OutActionSendMsg = {
             type: 'sendMsg',
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: multisig.address,
-                value: toNano('1'),
+                value: toNano('0.05'),
                 init: multisig.init,
                 body: beginCell().store(MS.storeDeploy({
                     $$type: 'Deploy',
@@ -150,7 +155,7 @@ describe('Independence Day', () => {
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: bankJettonMaster.address,
-                value: toNano('1'),
+                value: toNano('0.5'),
                 init: bankJettonMaster.init,
                 body: beginCell().store(BJ.storeDeploy({
                     $$type: 'Deploy',
@@ -160,13 +165,12 @@ describe('Independence Day', () => {
         };
 
         arcJettonMaster = blockchain.openContract(await AJ.ArcJetton.fromInit(highloadWalletV3.address, buildOnchainMetadata(ARCjettonParams)));
-
         const arcDeploy: OutActionSendMsg = {
             type: 'sendMsg',
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: arcJettonMaster.address,
-                value: toNano('1'),
+                value: toNano('0.05'),
                 init: arcJettonMaster.init,
                 body: beginCell().store(AJ.storeDeploy({
                     $$type: 'Deploy',
@@ -181,7 +185,7 @@ describe('Independence Day', () => {
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: banksCrowdSaleV3.address,
-                value: toNano('1'),
+                value: toNano('0.05'),
                 init: banksCrowdSaleV3.init,
                 body: beginCell().store(CS.storeDeploy({
                     $$type: 'Deploy',
@@ -224,7 +228,7 @@ describe('Independence Day', () => {
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: highloadWalletV3BankJettonContract.address,
-                value: toNano('1'),
+                value: toNano('0.5'),
                 body: beginCell().store(BJW.storeJettonTransfer(bankTransferToCrowdSale)).endCell()
             })
         };
@@ -245,7 +249,7 @@ describe('Independence Day', () => {
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: highloadWalletV3BankJettonContract.address,
-                value: toNano('1'),
+                value: toNano('0.5'),
                 body: beginCell().store(BJW.storeJettonTransfer(bankTransferToMultisig)).endCell()
             })
         };
@@ -258,7 +262,7 @@ describe('Independence Day', () => {
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: banksCrowdSaleV3.address,
-                value: toNano('1'),
+                value: toNano('0.05'),
                 init: banksCrowdSaleV3.init,
                 body: beginCell().store(CS.storeSetJettonWallet({
                     $$type: 'SetJettonWallet',
@@ -272,7 +276,7 @@ describe('Independence Day', () => {
             mode: SendMode.IGNORE_ERRORS,
             outMsg: internal_relaxed({
                 to: banksCrowdSaleV3.address,
-                value: toNano('1'),
+                value: toNano('0.05'),
                 init: banksCrowdSaleV3.init,
                 body: beginCell().store(CS.storeSetBankOffset({
                     $$type: 'SetBankOffset',
@@ -294,7 +298,6 @@ describe('Independence Day', () => {
 
         const banksCrowdSaleV3BankJettonWalletData = await banksCrowdSaleV3JettonContract.getGetWalletData();
         expect(banksCrowdSaleV3BankJettonWalletData.balance).toEqual(2700000n - banksAirdropSum);
-        const higlhloadWalletV3BankJettonBalance = (await highloadWalletV3BankJettonContract.getGetWalletData()).balance
 
         for (let i = 0; i < bankers.length / batchShift; ++i) {
             const outMsgsBanks: OutActionSendMsg[] = [];
@@ -307,7 +310,7 @@ describe('Independence Day', () => {
                     mode: SendMode.IGNORE_ERRORS,
                     outMsg: internal_relaxed({
                         to: highloadWalletV3BankJettonContract.address,
-                        value: toNano('0.5'),
+                        value: toNano('0.07'),
                         body:
                             beginCell()
                                 .store(BJ.storeJettonTransfer(getJettonTransferBuilder(contract.address, banksAmount, highloadWalletV3.address, false)))
@@ -320,7 +323,7 @@ describe('Independence Day', () => {
                     mode: SendMode.IGNORE_ERRORS,
                     outMsg: internal_relaxed({
                         to: arcJettonMaster.address,
-                        value: toNano('0.5'),
+                        value: toNano('0.07'),
                         body:
                             beginCell()
                                 .store(AJ.storeMint({
@@ -451,9 +454,10 @@ describe('Independence Day', () => {
         expect((await bankJettonMaster.getOwner()).toString()).toEqual(multisig.address.toString());
         expect((await banksCrowdSaleV3.getOwner()).toString()).toEqual(multisig.address.toString());
         expect((await arcJettonMaster.getOwner()).toString()).toEqual(multisig.address.toString());
-    });
 
-    it('Check all preparations', async () => {});
+    }, 10000000);
+
+    it('Check all preparations', async () => {}, 10000000);
 
     it('Check crowdSale', async () => {
         const banksAmount = 10;
@@ -514,7 +518,7 @@ describe('Independence Day', () => {
         }
 
         expect(await banksCrowdSaleV3.getTotalBanks()).toEqual(totalBanksOffset + BigInt(banksAmount * 300))
-    })
+    }, 10000000)
 
     it('Check bankStaking', async () => {
         const alice: SandboxContract<TreasuryContract> = blockchain.openContract(bankers[0].contract)
@@ -558,7 +562,7 @@ describe('Independence Day', () => {
 
         const aliceBnkBalanceAfter = (await aliceBankJettonContract.getGetWalletData()).balance;
         expect(aliceBnkBalanceAfter).toBeGreaterThanOrEqual(10n);
-    })
+    }, 10000000)
 
     it('check one else bankAirdrop', async () => {
         const recipients = []
@@ -615,9 +619,9 @@ describe('Independence Day', () => {
 
         const higlhloadWalletV3BankJettonBalance = (await highloadWalletV3BankJettonContract.getGetWalletData()).balance
         expect(higlhloadWalletV3BankJettonBalance).toEqual(0n)
-    })
+    }, 10000000)
 
     it('check multisig work', async () => {
 
-    })
+    }, 10000000)
 });

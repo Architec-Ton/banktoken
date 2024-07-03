@@ -24,7 +24,8 @@ describe('Banks crowd sale test', () => {
         name: "BNK jetton",
         description: "This is description for BNK jetton",
         symbol: "BNK",
-        image: "https://www.com/BankJetton.png"
+        image: "https://www.com/BankJetton.png",
+        decimals: '0'
     };
 
     beforeEach(async () => {
