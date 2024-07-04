@@ -85,16 +85,21 @@ export async function run(provider: NetworkProvider, args: string[]) {
             mode: 2n,
             body: bodySimple
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             provider.sender(),
             {
                 value: toNano(2)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         ui.write(`MultisigSignerWallet: ${multisigSignerWallet}`)
     } catch (err) {
         console.error(err);
