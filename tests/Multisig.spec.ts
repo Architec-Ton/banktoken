@@ -78,16 +78,21 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         const requestTransaction = await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(0.05)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
 
         expect(requestTransaction.transactions).toHaveTransaction({
@@ -115,16 +120,21 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(2)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
 
         let yeses = [];
@@ -222,16 +232,21 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().store(storeJettonTransfer(jettonTransfer)).endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(100)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
         for (let i of [owner1, owner2, owner3]) {
             await multisigSignerContract.send(
@@ -303,16 +318,21 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().store(storeJettonTransfer(jettonTransfer)).endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(100)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
         for (let i of [owner1, owner2, owner3]) {
             await multisigSignerContract.send(
@@ -342,6 +362,7 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         const alice = await blockchain.treasury('alice');
         const requestTransaction = await multisig.send(
@@ -349,7 +370,11 @@ describe('Multisig', () => {
             {
                 value: toNano(0.05)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
         expect(requestTransaction.transactions).toHaveTransaction({
@@ -371,16 +396,21 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(2)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
 
         let yeses = [];
@@ -412,20 +442,25 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(2)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
 
         for (let i of [owner1, owner2, owner3]) {
-            const yesTransaction = await multisigSignerContract.send(
+            await multisigSignerContract.send(
                 i.getSender(),
                 {
                     value: toNano(0.05)
@@ -511,16 +546,21 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().store(storeChangeOwner(changeOwner)).endCell()
         };
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(100)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
         for (let i of [owner1, owner2, owner3]) {
             await multisigSignerContract.send(
@@ -600,6 +640,7 @@ describe('Multisig', () => {
             amount: 2000n,
 
         }
+        const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         const request: Request = {
             $$type: 'Request',
@@ -617,10 +658,14 @@ describe('Multisig', () => {
             {
                 value: toNano(100)
             },
-            request
+            {
+                $$type: 'CreatePoll',
+                request: request,
+                timestamp: timestamp
+            }
         );
 
-        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request);
+        const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
         const multisigSignerContract = blockchain.openContract(multisigSignerWallet);
         for (let i of [owner1, owner2, owner3]) {
             await multisigSignerContract.send(
@@ -653,20 +698,25 @@ describe('Multisig', () => {
             mode: 2n,
             body: beginCell().store(storeChangeMinter(changeMinter)).endCell()
         };
+        const timestamp2 = BigInt(Math.floor(Date.now() / 1000));
 
         const req2send =  await multisig.send(
             owner1.getSender(),
             {
                 value: toNano(100)
             },
-            request2
+            {
+                $$type: 'CreatePoll',
+                request: request2,
+                timestamp: timestamp2
+            }
         );
         expect(req2send.transactions).toHaveTransaction({
             from: owner1.address,
             to: multisig.address,
             success: true
         });
-        const multisigSignerWallet2 = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request2);
+        const multisigSignerWallet2 = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request2, timestamp2);
         const multisigSignerContract2 = blockchain.openContract(multisigSignerWallet2);
 
         const savedReq = await multisigSignerContract2.getRequest();

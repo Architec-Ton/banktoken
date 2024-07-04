@@ -1,5 +1,6 @@
 import "@stdlib/deploy";
 
+
 message Request {
     requested: Address;
     to: Address;
@@ -8,6 +9,11 @@ message Request {
     bounce: Bool;
     mode: Int as uint8;
     body: Cell?;
+}
+
+message CreatePoll {
+    request: Request;
+    timestamp: Int;
 }
 
 message Signed {
@@ -27,7 +33,7 @@ contract MultisigSigner {
     // Request
     request: Request;
 
-    init(master: Address, members: map<Address, Int>, requiredWeight: Int, request: Request) {
+    init(master: Address, members: map<Address, Int>, requiredWeight: Int, request: Request, timestamp: Int) {
         self.master = master;
         self.members = members;
         self.requiredWeight = requiredWeight;
@@ -74,6 +80,7 @@ contract Multisig with Deployable {
     members: map<Address, Int>;
     totalWeight: Int;
     requiredWeight: Int;
+    last_signed_timestamp: Int;
 
     init(members: map<Address, Int>, totalWeight: Int, requiredWeight: Int) {
         self.members = members;
@@ -81,6 +88,7 @@ contract Multisig with Deployable {
         self.totalWeight = totalWeight;
         self.totalWeight = 0;
         self.seqno = 0;
+        self.last_signed_timestamp = now();
     }
 
     receive() {
@@ -88,7 +96,7 @@ contract Multisig with Deployable {
     }
 
     // Request new pending transaction
-    receive(msg: Request) {
+    receive(msg: CreatePoll) {
 
         // Check sender
         let sender: Address = sender();
@@ -96,7 +104,8 @@ contract Multisig with Deployable {
         require(weight > 0, "Not a member");
 
         // Create message
-        let opInit: StateInit = initOf MultisigSigner(myAddress(), self.members, self.requiredWeight, msg);
+        self.last_signed_timestamp = msg.timestamp;
+        let opInit: StateInit = initOf MultisigSigner(myAddress(), self.members, self.requiredWeight, msg.request, self.last_signed_timestamp);
         let opAddress: Address = contractAddress(opInit);
         send(SendParameters{
         value: 0,
@@ -113,7 +122,7 @@ contract Multisig with Deployable {
         // Check parameters
         // NOTE: this will check members, required weight, master address
         let sender: Address = sender();
-        let opInit: StateInit = initOf MultisigSigner(myAddress(), self.members, self.requiredWeight, msg.request);
+        let opInit: StateInit = initOf MultisigSigner(myAddress(), self.members, self.requiredWeight, msg.request, self.last_signed_timestamp);
         let opAddress: Address = contractAddress(opInit);
         require(opAddress == sender, "Invalid sender");
         require(msg.request.timeout > now(), "Timeout");
