@@ -576,6 +576,7 @@ describe('Multisig', () => {
             {
                 $$type: 'ChangeMinter',
                 newMinter: multisig.address,
+                isMinter: true
              
             }
         )
@@ -639,6 +640,7 @@ describe('Multisig', () => {
         const changeMinter: ChangeMinter = {
             $$type: 'ChangeMinter',
             newMinter: owner2.address,
+            isMinter: true
         }
 
         const request2: Request = {

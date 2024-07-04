@@ -423,7 +423,8 @@ describe('Independence Day', () => {
                     beginCell()
                         .store(AJ.storeChangeMinter({
                             $$type: 'ChangeMinter',
-                            newMinter: bankJettonMaster.address
+                            newMinter: bankJettonMaster.address,
+                            isMinter: true
                         }))
                         .endCell()
             })

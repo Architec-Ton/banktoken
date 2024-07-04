@@ -113,7 +113,8 @@ describe('ARCWithdraw', () => {
             },
             {
                 $$type: 'ChangeMinter',
-                newMinter: bankJetton.address
+                newMinter: bankJetton.address,
+                isMinter: true
             },
         );
 

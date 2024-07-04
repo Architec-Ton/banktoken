@@ -26,26 +26,26 @@ contract ArcJetton with JettonMaster, Deployable, OwnableTransferable {
     total_supply: Int as coins = 0;
     mintable: Bool = true;
     owner: Address;
-    minter: Address;
+    minter: map<Address, Bool>;
     
     jetton_content: Cell;
 
     init(_owner: Address, _jetton_content: Cell){
         self.owner = _owner;
-        self.minter = _owner;
+        self.minter.set(_owner, true);
         self.jetton_content = _jetton_content;
     }
   
     receive (_msg: ChangeMinter) {
         require (context().sender == self.owner, "Not right owner ");
-        self.minter = _msg.newMinter;
+        self.minter.set(_msg.newMinter, _msg.isMinter); 
     }
 
     receive(_msg: Mint) {
         let ctx: Context = context();
         // dump("ARC MINT");
         // dump(_msg.amount);
-        require (ctx.sender == self.minter, "not right minter");
+        require (self.minter.get(ctx.sender)!!, "not right minter");
         let msg: JettonMint = JettonMint{
             origin: _msg.to,
             receiver:_msg.to,
