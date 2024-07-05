@@ -24,7 +24,7 @@ describe('Banks crowd sale test', () => {
         name: "BNK jetton",
         description: "This is description for BNK jetton",
         symbol: "BNK",
-        image: "https://www.com/BankJetton.png",
+        image_data: "https://www.com/BankJetton.png",
         decimals: '0'
     };
 
@@ -57,7 +57,7 @@ describe('Banks crowd sale test', () => {
         const aliceWallet = await BNKJetton.getGetWalletAddress(alice.address);
         aliceJettonContract = blockchain.openContract(BankJettonWallet.fromAddress(aliceWallet));
 
-        banksCrowdSaleV3 = blockchain.openContract(await BanksCrowdSaleV3.fromInit());
+        banksCrowdSaleV3 = blockchain.openContract(await BanksCrowdSaleV3.fromInit(BNKJetton.address));
         const deployBanksCrowdSaleV3Result = await banksCrowdSaleV3.send(
             owner.getSender(),
             {

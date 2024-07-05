@@ -30,7 +30,7 @@ describe('ARC Airdrop test', () => {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/BankJetton.png",
+        image_data: "https://www.com/BankJetton.png",
         decimals: '0'
     };
 

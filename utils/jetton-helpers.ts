@@ -46,7 +46,7 @@ const toKey = (key: string) => {
 export function buildOnchainMetadata(data: {
     name: string;
     description: string;
-    image: string;
+    image_data: string;
     decimals: string;
 }): Cell {
     let dict = Dictionary.empty(
@@ -54,7 +54,7 @@ export function buildOnchainMetadata(data: {
         Dictionary.Values.Cell()
     );
     Object.entries(data).forEach(([key, value]) => {
-        dict.set(toKey(key), makeSnakeCell(Buffer.from(value, "utf8")));
+        dict.set(toKey(key), makeSnakeCell(Buffer.from(value, 'utf-8')));
     });
 
     return beginCell()

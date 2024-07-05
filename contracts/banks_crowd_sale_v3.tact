@@ -29,12 +29,13 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
     totalBanksOffset: Int as uint32;
 
     jetton_wallet: Address;
+    jetton_master: Address;
 
     const MinTonForStorage: Int = ton("0.5"); // enough for 50 B of storage for 2.5 years
     const jetton_transfer_fee: Int = ton("0.07"); // ~ 0.4 TON, medium fee for any amount of Jetton is 0.037 TON - docs
     // but we deploy buyer's JettonWallet, so gas is big ~ 0.2 - 0.3
 
-    init() {
+    init(jetton_master: Address) {
         self.saleEnabled = true;
         self.totalBanks = 0;
         self.totalBanksOffset = 107613;
@@ -45,6 +46,7 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
         self.price4stage = ton("4");
 
         self.jetton_wallet = myAddress();
+        self.jetton_master = jetton_master;
     }
 
     get fun TotalBanks(): Int {

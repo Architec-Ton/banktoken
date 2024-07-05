@@ -24,14 +24,14 @@ describe('Bank Staking', () => {
         name: 'BNK jetton',
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
-        image: 'https://www.com/BNKjetton.json',
+        image_data: 'https://www.com/BNKjetton.json',
         decimals: '0'
     };
     const ARCjettonParams = {
         name: 'ARC jetton',
         description: 'This is description for ARC jetton',
         symbol: 'ARC',
-        image: 'https://www.com/ARCjetton.json',
+        image_data: 'https://www.com/ARCjetton.json',
         decimals: '9'
     };
 

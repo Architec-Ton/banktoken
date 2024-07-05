@@ -1,4 +1,4 @@
-import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, toNano } from '@ton/core';
+import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, SendMode, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { NetworkProvider } from '@ton/blueprint';
 
@@ -8,6 +8,8 @@ import { MultisigSigner } from '../build/Multisig/tact_MultisigSigner';
 
 import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
 import * as AJW from '../build/ArcJetton/tact_ArcJettonWallet';
+import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
+import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
 
 require('dotenv').config()
 
@@ -16,14 +18,14 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const multisigAddress = Address.parse(process.env.MULTISIG_ADDRESS)!;
 
     if (!(await provider.isContractDeployed(multisigAddress))) {
-        ui.write(`Error: HLW Contract at address ${multisigAddress} is not deployed!`);
+        ui.write(`Error: Contract at address ${multisigAddress} is not deployed!`);
         return;
     }
 
-    const addressTo = Address.parse(process.env.JETTON_ADDRESS!);
+    let addressTo = Address.parse(process.env.ADDRESS_TO!);
 
     if (!(await provider.isContractDeployed(addressTo))) {
-        ui.write(`Error: HLW Contract at address ${addressTo} is not deployed!`);
+        ui.write(`Error: Contract at address ${addressTo} is not deployed!`);
         return;
     }
 
@@ -73,24 +75,29 @@ export async function run(provider: NetworkProvider, args: string[]) {
         const bodyBankJettonTransfer = beginCell().store(BJW.storeJettonTransfer(bankJettonTransfer)).endCell()
         const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
 
+        const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet({
+            $$type: 'SetJettonWallet',
+            jetton_wallet: Address.parse('kQBoE25QwlWr38wBPANIyhgMK8XeCoBTIN1wKU7pNqDIG9wa')
+        })).endCell()
+
         const tonAmount = 1
 
         const request: Request = {
             $$type: 'Request',
             requested: addressTo,
             to: addressTo,
-            value: toNano(tonAmount),
-            timeout: BigInt(Date.now() / 1000 + 100),
+            value: toNano(1),
+            timeout: BigInt(Math.floor(Date.now() / 1000 + 60 * 60 * 24)),
             bounce: false,
             mode: 2n,
-            body: bodySimple
+            body: bodySetCrowdSaleWallet
         };
         const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
         await multisig.send(
             provider.sender(),
             {
-                value: toNano(2)
+                value: toNano(0.05)
             },
             {
                 $$type: 'CreatePoll',
@@ -100,7 +107,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         );
 
         const multisigSignerWallet = await MultisigSigner.fromInit(multisig.address, members, requireWeight, request, timestamp);
-        ui.write(`MultisigSignerWallet: ${multisigSignerWallet}`)
+        ui.write(`MultisigSignerWallet: ${multisigSignerWallet.address}`)
     } catch (err) {
         console.error(err);
     }

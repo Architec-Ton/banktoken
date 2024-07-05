@@ -32,7 +32,7 @@ describe('ARC Airdrop test', () => {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/ARCjetton.png",
+        image_data: "https://www.com/ARCjetton.png",
         decimals: '9'
     };
 
@@ -40,7 +40,7 @@ describe('ARC Airdrop test', () => {
         name: 'BNK jetton',
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
-        image: 'https://www.com/BNKjetton.json',
+        image_data: 'https://www.com/BNKjetton.json',
         decimals: '0'
     };
 
@@ -73,7 +73,7 @@ describe('ARC Airdrop test', () => {
 
         owner = await blockchain.treasury('owner', {balance: toNano(10000)});
         bankJetton = blockchain.openContract(
-            await BJ.BankJetton.fromInit(owner.address, buildOnchainMetadata(BNKjettonParams)),
+            await BJ.BankJetton.fromInit(owner.address, beginCell().endCell()),
         );
         const deployResultBNK = await bankJetton.send(
             owner.getSender(),
