@@ -98,8 +98,8 @@ contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
         //send stake info
         send(SendParameters{
             to: contractAddress(stakeInit),
-            value: 0,
-            mode: SendRemainingValue,
+            value: ton("0.3"),
+            mode: SendIgnoreErrors, // todo
             bounce: true,
             body:Add {
                 queryId: stake.query_id, //Int as uint64;
@@ -114,8 +114,8 @@ contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
 
         send(SendParameters{
             to: self.lastCell,
-            value: 1,
-            mode: SendRemainingValue  + SendIgnoreErrors,
+            value: ton("0.1"),
+            mode:  SendIgnoreErrors, // todo
             bounce: false,
             body:UpdateNext {
                 nextCell: contractAddress(stakeInit) // Address;
@@ -135,7 +135,7 @@ contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
         send(SendParameters{
             to: walletBNKAddress,
             value: 0,
-            mode: (SendRemainingValue  + SendIgnoreErrors  ),
+            mode: (SendRemainingValue  + SendIgnoreErrors  ), // todo
             bounce: true, // 0x7362d09c - notify new owner
             body: sendBNKmsg.toCell()
         });

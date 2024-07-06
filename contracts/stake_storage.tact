@@ -90,9 +90,10 @@ contract StakeStorage with  Storage {
         let ctx: Context = context();
         require (ctx.sender == self.factory, "wrong call" );
         require(_msg.applied_user_address == self.owner, "Not owner");
+        require (self.amount > 0, "No staking amount");
         let mint: Mint = Mint{
-        to: _msg.applied_user_address,
-        amount: self.score_function()
+            to: _msg.applied_user_address,
+            amount: self.score_function()
         };
         send(SendParameters{
         to: ctx.sender,
@@ -126,7 +127,7 @@ contract StakeStorage with  Storage {
         send(SendParameters{
             to: self.stakerWallet,
             value: 0,
-            mode: (SendRemainingValue  + SendIgnoreErrors  ),
+            mode: (SendRemainingValue  + SendIgnoreErrors  ), //?
             bounce: true, // 0x7362d09c - notify new owner
             body: JettonTransfer{
                 query_id: 0,
@@ -169,8 +170,12 @@ contract StakeStorage with  Storage {
         else if (self.amount < 10_000) {parameter = ton("2.5");}
         else {parameter = ton("30");
         }
-        return (/* self.amount *  */self.durationTime() * parameter / 86400);  // 60sec*60min*24hour  )
-
+        if (self.amount == 0) {
+            return 0;
+        }
+        else {
+            return (/* self.amount *  */self.durationTime() * parameter / 86400);  // 60sec*60min*24hour  )
+        }
     }
 
     fun durationTime(): Int {
