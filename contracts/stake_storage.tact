@@ -118,7 +118,7 @@ contract StakeStorage with  Storage {
         };
         send(SendParameters{
             to: ctx.sender,
-            value: ton("1"),
+            value: ton("0.1"),
             mode: ( SendIgnoreErrors ),
             bounce: true,
             body:mint.toCell()
@@ -127,7 +127,7 @@ contract StakeStorage with  Storage {
         send(SendParameters{
             to: self.stakerWallet,
             value: 0,
-            mode: (SendRemainingValue  + SendIgnoreErrors  ), //?
+            mode: (SendIgnoreErrors  + SendRemainingBalance), //?
             bounce: true, // 0x7362d09c - notify new owner
             body: JettonTransfer{
                 query_id: 0,
@@ -142,8 +142,7 @@ contract StakeStorage with  Storage {
 
         self.amount= 0;
         self.updatetime = now();
-        self.empty = false;        
-
+        self.empty = true;
     }
     get fun amountTime(_for: Address): AmountTime {
         return   AmountTime{for: _for,

@@ -19,15 +19,17 @@ contract BankJettonWallet with JettonWallet {
         let ctx: Context = context();
         // dump("Stake");
         // dump (ctx.sender);
+        require(context().sender == self.owner, "acess denided");
         let msg: JettonTransfer = JettonTransfer{
                 query_id: _stake.query_id,
                 amount: _stake.amount,
                 destination:  self.jetton_master,
                 response_destination:   self.jetton_master,
                 custom_payload: null,
-                forward_ton_amount:ton("1"),
+                forward_ton_amount: context().value - ton("0.1"),
                 forward_payload: emptySlice()
         };
+        self.balance = self.balance - _stake.amount;
         self._transfer_jetton (ctx, msg);
     }
 
@@ -89,22 +91,26 @@ contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
         let ctx: Context = context();
         let walletBNKAddress: Address = contractAddress(self.calculate_jetton_wallet_init(myAddress()));
         require(ctx.sender == walletBNKAddress, "Not right sender of stake message"); //waiting response from own wallet
-        let stakeInit: StateInit =initOf StakeStorage (stake.sender, myAddress()); //initOf StakeStorage(stake.sender, myAddress());
+        let stakeInit: StateInit = initOf StakeStorage (stake.sender, myAddress()); //initOf StakeStorage(stake.sender, myAddress());
         // init iterator if need
+        let storage: Address = contractAddress(stakeInit);
+        let stakerWallet: Address = contractAddress(self.calculate_jetton_wallet_init(storage));
+
         if (self.firstCell ==  newAddress(0, 0)) {
-            self.firstCell = contractAddress(stakeInit);}
+            self.firstCell = storage;}
         if (self.lastCell ==  newAddress(0, 0)) {
-            self.lastCell = contractAddress(stakeInit);}
+            self.lastCell = storage;}
+
         //send stake info
         send(SendParameters{
             to: contractAddress(stakeInit),
-            value: ton("0.3"),
+            value: ton("0.04"),
             mode: SendIgnoreErrors, // todo
             bounce: true,
             body:Add {
                 queryId: stake.query_id, //Int as uint64;
                 amount:  stake.amount, //Int as uint32;
-                stakerWallet: ctx.sender,  
+                stakerWallet: stakerWallet,
                 previousCell: self.lastCell, // Address;
                 nextCell: self.firstCell // Address;
             }.toCell(),
@@ -114,20 +120,20 @@ contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
 
         send(SendParameters{
             to: self.lastCell,
-            value: ton("0.1"),
+            value: ton("0.03"),
             mode:  SendIgnoreErrors, // todo
             bounce: false,
             body:UpdateNext {
-                nextCell: contractAddress(stakeInit) // Address;
+                nextCell: storage // Address;
             }.toCell()
         });
-        self.lastCell = contractAddress(stakeInit);
+        self.lastCell = storage;
 
         let sendBNKmsg: JettonTransfer = JettonTransfer{
                 query_id: stake.query_id,
                 amount: stake.amount,
-                destination:  contractAddress(stakeInit),
-                response_destination:   contractAddress(stakeInit),
+                destination:  storage,
+                response_destination:   storage,
                 custom_payload: null,
                 forward_ton_amount:0,
                 forward_payload: emptySlice()
@@ -135,10 +141,17 @@ contract BankJetton with JettonMaster, Deployable,  OwnableTransferable {
         send(SendParameters{
             to: walletBNKAddress,
             value: 0,
-            mode: (SendRemainingValue  + SendIgnoreErrors  ), // todo
+            mode: (SendIgnoreErrors + SendRemainingBalance ), // todo
             bounce: true, // 0x7362d09c - notify new owner
             body: sendBNKmsg.toCell()
         });
+
+//        send(SendParameters{
+//            to: stake.sender,
+//            value: 0,
+//            mode: (SendIgnoreErrors + SendRemainingBalance ), // todo
+//            bounce: false // 0x7362d09c - notify new owner
+//        });
         
         // TODO 
         // Submit the Log Event 
