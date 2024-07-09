@@ -9,7 +9,6 @@ import {
     toNano
 } from '@ton/core';
 import '@ton/test-utils';
-import { randomAddress } from '@ton/test-utils';
 
 import { mnemonicToPrivateKey } from 'ton-crypto';
 import { compile, NetworkProvider, sleep } from '@ton/blueprint';
@@ -26,7 +25,7 @@ import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
 import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
-import { randomInt } from 'crypto';
+import fs from 'node:fs';
 
 
 export async function run(provider: NetworkProvider) {
@@ -57,10 +56,13 @@ export async function run(provider: NetworkProvider) {
         decimals: '9'
     };
 
-    for (let i = 0; i < 95; ++i) {
+    const fileAirdrop = fs.readFileSync('./all.csv', 'utf8');
+    const rows =  fileAirdrop.split('\n');
+    for (let csvrow of  rows) {
+        const columns = csvrow.split(';');
         bankers.push({
-            address: randomAddress(),
-            banksAmount: BigInt(randomInt(10, 100))
+            address: Address.parse(columns[0]),
+            banksAmount: BigInt(columns[1])
         });
     }
 
@@ -79,7 +81,7 @@ export async function run(provider: NetworkProvider) {
     }
     const totalBanksOffset = banksAirdropSum + 300000n;
 
-    const mnemonic = ['atom', 'light', 'increase', 'trap', 'shrug', 'evolve', 'scrap', 'ostrich', 'cushion', 'modify', 'corn', 'coconut', 'apple', 'steak', 'caution', 'horn', 'flame', 'naive', 'outdoor', 'debate', 'copper', 'advice', 'dolphin', 'render']
+    const mnemonic = process.env.OWNER_1_ADDRESS!.split(' ')
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const code = await compile('HighloadWalletV3');
 
