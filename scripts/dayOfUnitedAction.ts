@@ -66,14 +66,14 @@ export async function run(provider: NetworkProvider) {
         });
     }
 
-    bankers.push({
-        address: Address.parse('0QCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xeroso3_'),
-        banksAmount: 10000n
-    })
-    bankers.push({
-        address: Address.parse('0QDOQbS74Sn-sGojYfUK6Uknlg8t1CdNjG-5VJx5VIO2zD_j'),
-        banksAmount: 10000n
-    })
+    const nomises = new Set<string>()
+    const fileNomis = fs.readFileSync('./nomis.txt', 'utf8');
+    const nomis_rows =  fileNomis.split('\n');
+    for (let csvrow of  nomis_rows) {
+        const columns = csvrow.split(';');
+        if (columns.length < 1) continue
+        nomises.add(Address.parse(columns[0]).toString());
+    }
 
     let banksAirdropSum = 0n;
     for (let { banksAmount } of bankers) {
@@ -293,7 +293,10 @@ export async function run(provider: NetworkProvider) {
                             .endCell()
                 })
             });
-
+            let offset = 0
+            if (nomises.has(address.toString())) {
+                offset += 10
+            }
             outMsgsArcs.push({
                 type: 'sendMsg',
                 mode: SendMode.IGNORE_ERRORS,
@@ -305,7 +308,7 @@ export async function run(provider: NetworkProvider) {
                             .store(AJ.storeMint({
                                 $$type: 'Mint',
                                 to: address,
-                                amount: toNano(banksAmount * 100n)
+                                amount: toNano((banksAmount + offset) * 100n)
                             }))
                             .endCell()
                 })
