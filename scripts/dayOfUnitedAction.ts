@@ -293,9 +293,10 @@ export async function run(provider: NetworkProvider) {
                             .endCell()
                 })
             });
-            let offset = 0
+
+            let multi = 100
             if (nomises.has(address.toString())) {
-                offset += 10
+                multi = 110
             }
             outMsgsArcs.push({
                 type: 'sendMsg',
@@ -308,7 +309,7 @@ export async function run(provider: NetworkProvider) {
                             .store(AJ.storeMint({
                                 $$type: 'Mint',
                                 to: address,
-                                amount: toNano((banksAmount + offset) * 100n)
+                                amount: toNano(banksAmount * multi)
                             }))
                             .endCell()
                 })
