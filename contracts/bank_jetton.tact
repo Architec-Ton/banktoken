@@ -19,7 +19,7 @@ contract BankJettonWallet with JettonWallet {
         let ctx: Context = context();
         // dump("Stake");
         // dump (ctx.sender);
-        require(context().sender == self.owner, "acess denided");
+        require(context().sender == self.owner, "acсess denided");
         let msg: JettonTransfer = JettonTransfer{
                 query_id: _stake.query_id,
                 amount: _stake.amount,

@@ -76,13 +76,31 @@ contract StakeStorage with  Storage {
     receive(_msg: Add) {
         let ctx: Context = context(); // Check sender
         require(ctx.sender == self.factory, "Invalid sender");
-        require(self.empty, "Already filled");
-        self.amount += _msg.amount;
-        self.updatetime = now();
-        self.previousCell= _msg.previousCell;
-        self.nextCell = _msg.nextCell;
-        self.stakerWallet = _msg.stakerWallet;
-        self.empty = false;        
+        if (self.empty){  
+            self.amount = _msg.amount;
+            self.updatetime = now();
+            self.previousCell= _msg.previousCell;
+            self.nextCell = _msg.nextCell;
+            self.stakerWallet = _msg.stakerWallet;
+            self.empty = false;
+        }        
+        else { //"Already filled, returnBNK );
+            send(SendParameters{
+                to: _msg.stakerWallet,
+                value: 0,
+                mode: (SendIgnoreErrors  + SendRemainingBalance), //?
+                bounce: true, 
+                body: JettonTransfer{
+                    query_id: 0,
+                    amount: _msg.amount,
+                    destination:  self.owner, 
+                    response_destination:  self.owner,
+                    custom_payload: null,
+                    forward_ton_amount:0,
+                    forward_payload: emptySlice()
+                }.toCell()
+            });
+        }
     }
 
     receive (_msg: GetWeighted) {

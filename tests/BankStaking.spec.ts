@@ -171,6 +171,71 @@ describe('Bank Staking', () => {
 
     });
 
+    it('avoid double staking BNK', async () => {
+        // send 1 token to Alice first to build her jetton wallet
+
+
+        // Alice's jetton wallet address
+        const aliceWalletAddress = await bankJetton.getGetWalletAddress(alice.address);
+        // Alice's jetton wallet
+        console.log ("aliceWalletAddress:", aliceWalletAddress)
+        const aliceJettonContract = blockchain.openContract(await BJW.BankJettonWallet.fromAddress(aliceWalletAddress));
+        const aliceBNKBalanceInit = (await aliceJettonContract.getGetWalletData()).balance;
+        expect(aliceBNKBalanceInit).toEqual(100000n);
+        
+        const jettonStake: BJW.Stake = {
+            $$type: 'Stake',
+            query_id: 0n,
+            amount: 1n,
+            
+        };
+        const transferResult = await aliceJettonContract.send(
+            alice.getSender(),
+            {
+                value: toNano('2'),
+            },
+            jettonStake,
+        );
+        //printTransactionFees(transferResult.transactions);
+
+        // Check that Alice sent JettonTransfer to staking
+        const aliceBNKBalanceafterSt1 = (await aliceJettonContract.getGetWalletData()).balance;
+        expect(aliceBNKBalanceafterSt1).toEqual(99999n);
+        const stakeStorageAddr = await bankJetton.getCalculateStakeAddress(alice.address);
+
+       
+        const stakeStorage = blockchain.openContract(await StakeStorage.fromAddress(stakeStorageAddr));
+        const amountTime = await stakeStorage.getAmountTime(alice.address);
+        expect(amountTime.stakedAmount).toEqual(1n);
+
+        const stakeStorageBNKJettonWallet = await bankJetton.getGetWalletAddress(stakeStorage.address)
+        const stakeStorageBNKJettonContract = blockchain.openContract(BJW.BankJettonWallet.fromAddress(stakeStorageBNKJettonWallet));
+        const stakestorBNKBalanceafterSt1 = (await stakeStorageBNKJettonContract.getGetWalletData()).balance;
+        expect(stakestorBNKBalanceafterSt1).toEqual(1n);
+
+        //sending BNK again when stake closed 
+        const transferResult2 = await aliceJettonContract.send(
+            alice.getSender(),
+            {
+                value: toNano('2'),
+            },
+            jettonStake,
+        );
+        //printTransactionFees(transferResult.transactions);
+        const amountTime2 = await stakeStorage.getAmountTime(alice.address);
+        expect(amountTime2.stakedAmount).toEqual(1n);
+        
+        // Check that Alice got back  BNK avoid double staking
+        // expect(transferResult.transactions).toHaveTransaction({
+        //     from: aliceJettonContract.address,
+        //     to: stakeStorageBNKJettonContract.address,
+        //     success: true
+        // })
+        const aliceBNKBalanceafterSt2 = (await aliceJettonContract.getGetWalletData()).balance;
+        expect(aliceBNKBalanceafterSt2).toEqual(99999n);
+
+    });
+
     it('stake 1 BNK for 1000 days', async () => {
 
         // Alice's jetton wallet address
@@ -361,4 +426,6 @@ describe('Bank Staking', () => {
         expect(amountTime2.calculatedAmount).toEqual(toNano("900"))
 
     });
+
+   
 });
