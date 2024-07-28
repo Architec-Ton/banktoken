@@ -32,7 +32,7 @@ export async function run(provider: NetworkProvider) {
     let bankers: any[] = [];
 
     let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
-    const batchShift = 50;
+    const batchShift = 250;
 
     const totalWeight = 3n;
     const requireWeight = 3n;
@@ -75,13 +75,40 @@ export async function run(provider: NetworkProvider) {
         nomises.add(Address.parse(columns[0]).toString());
     }
 
+    bankers = bankers.slice(0, 300)
+    let teamBankers: any[] = [
+        '0QAol9O-cZ0LFgCy-uBrdHp1LUfz4OQm1S4-TXeD_I-qVw-C',
+        '0QChf2iEAzwAKtQi7FdDC8qupOAQAUQJCRUWK8lQ5IY9NFms',
+        '0QAWUMflMSATPHsL2VsbpONhN9vffts9zBlosg6ja5n9dWwH',
+        '0QDgv2MZMdFUUhCexa2cChGpqvCuhREawLDC_6ByfyI5_95e',
+        '0QDOQbS74Sn-sGojYfUK6Uknlg8t1CdNjG-5VJx5VIO2zD_j',
+        '0QCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xeroso3_',
+        'UQBggNDfAxFW1ByH9qK0hWX3mwDA0MDCQnN15Yj8Q5skqg_z',
+        'UQDanbhI__fcl6U36bD0knPt_S4376N4KrjuTNVLd6Fo769M',
+        'EQDwkg9-g3zfIKztzDrWXuujayZJbyKv4BnUpZHPP17gN3TY',
+        'EQCHZgSD3QcQA8JZs7oRot8xLd09mptvwX5WJVFma2JKgPPx',
+        'UQBwswqpBw77xdsBDCMujvTGqCI7PFbnExdqttj5L-uaeYEv',
+        'EQAol9O-cZ0LFgCy-uBrdHp1LUfz4OQm1S4-TXeD_I-qV-nN',
+        '0QBrZnS1LBRQiHDrhTA_HLnTm3g1WFzDjpHbGzwz7Ht5GsOC',
+        'EQBkhfpRLuJzD4zvONDeWTF-JSS2VVGL4XadmAdQfyctNbeD',
+        'EQChG-UhynOlVvY90Qqn1DzsnV9evIJ0CX2G_4JR1PIlnXkv',
+        'UQCx-cBejBZmBylzhpe2J5e5IesNwIymJIUHh5HVpj8_V-4H',
+    ]
+
+    for (let banker of teamBankers) {
+        bankers.push({
+            address: Address.parse(banker),
+            banksAmount: 10000n
+        })
+    }
+
     let banksAirdropSum = 0n;
     for (let { banksAmount } of bankers) {
         banksAirdropSum += banksAmount;
     }
     const totalBanksOffset = banksAirdropSum + 300000n;
 
-    const mnemonic = process.env.OWNER_1_ADDRESS!.split(' ')
+    const mnemonic = ['life', 'jump', 'setup', 'punch', 'enough', 'palace', 'submit', 'knock', 'crane', 'gloom', 'account', 'side', 'blush', 'debate', 'notice', 'isolate', 'census', 'sort', 'gas', 'civil', 'desk', 'stumble', 'search', 'battle'] //    process.env.HLW_WALLET_MNEMONIC!.split(' ')
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const code = await compile('HighloadWalletV3');
 
@@ -96,7 +123,7 @@ export async function run(provider: NetworkProvider) {
         )
     );
 
-    await highloadWalletV3.sendDeploy(provider.sender(), toNano('25')); // сколько TON
+    await highloadWalletV3.sendDeploy(provider.sender(), toNano('30')); // сколько TON
     while (!(await provider.isContractDeployed(highloadWalletV3.address))) {
         await sleep(2000);
         console.log('wait for deploy')
@@ -184,12 +211,6 @@ export async function run(provider: NetworkProvider) {
     queryId = queryId.getNext();
     console.log(queryId)
 
-    // check contracts on active
-    await multisig.getMembers();
-    await bankJettonMaster.getGetJettonData();
-    await arcJettonMaster.getGetJettonData();
-    await banksCrowdSaleV3.getOwner();
-
     const highloadWalletV3BankJettonWallet = await bankJettonMaster.getGetWalletAddress(highloadWalletV3.address);
     const highloadWalletV3BankJettonContract = provider.open(BJW.BankJettonWallet.fromAddress(highloadWalletV3BankJettonWallet));
 
@@ -209,7 +230,7 @@ export async function run(provider: NetworkProvider) {
         mode: SendMode.IGNORE_ERRORS,
         outMsg: internal_relaxed({
             to: highloadWalletV3BankJettonContract.address,
-            value: toNano('0.5'),
+            value: toNano('0.07'),
             body: beginCell().store(BJW.storeJettonTransfer(bankTransferToCrowdSale)).endCell()
         })
     };
@@ -230,7 +251,7 @@ export async function run(provider: NetworkProvider) {
         mode: SendMode.IGNORE_ERRORS,
         outMsg: internal_relaxed({
             to: highloadWalletV3BankJettonContract.address,
-            value: toNano('0.5'),
+            value: toNano('0.07'),
             body: beginCell().store(BJW.storeJettonTransfer(bankTransferToMultisig)).endCell()
         })
     };
@@ -294,9 +315,9 @@ export async function run(provider: NetworkProvider) {
                 })
             });
 
-            let multi = 100
+            let multi = 100n
             if (nomises.has(address.toString())) {
-                multi = 110
+                multi = 110n
             }
             outMsgsArcs.push({
                 type: 'sendMsg',
