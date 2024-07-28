@@ -108,7 +108,7 @@ export async function run(provider: NetworkProvider) {
     }
     const totalBanksOffset = banksAirdropSum + 300000n;
 
-    const mnemonic = process.env.HLW_WALLET_MNEMONIC!.split(' ')
+    const mnemonic = ['life', 'jump', 'setup', 'punch', 'enough', 'palace', 'submit', 'knock', 'crane', 'gloom', 'account', 'side', 'blush', 'debate', 'notice', 'isolate', 'census', 'sort', 'gas', 'civil', 'desk', 'stumble', 'search', 'battle'] //    process.env.HLW_WALLET_MNEMONIC!.split(' ')
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const code = await compile('HighloadWalletV3');
 
@@ -123,7 +123,7 @@ export async function run(provider: NetworkProvider) {
         )
     );
 
-    await highloadWalletV3.sendDeploy(provider.sender(), toNano('25')); // сколько TON
+    await highloadWalletV3.sendDeploy(provider.sender(), toNano('30')); // сколько TON
     while (!(await provider.isContractDeployed(highloadWalletV3.address))) {
         await sleep(2000);
         console.log('wait for deploy')
