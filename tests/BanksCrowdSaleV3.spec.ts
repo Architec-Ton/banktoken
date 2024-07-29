@@ -18,7 +18,7 @@ describe('Banks crowd sale test', () => {
     let banksCrowdSaleV3: SandboxContract<BanksCrowdSaleV3>;
     let banksCrowdSaleV3JettonContract: SandboxContract<BankJettonWallet>;
     let aliceJettonContract: SandboxContract<BankJettonWallet>;
-    const totalBanksOffset = 107613n
+    const totalBanksOffset = 0n
 
     const jettonParams = {
         name: "BNK jetton",
@@ -130,14 +130,14 @@ describe('Banks crowd sale test', () => {
         )
     });
 
-    it('should transfer 1 Bank to Alice and 1.5 TON to owner', async () => {
+    it('should transfer 1 Bank to Alice and 1 TON to owner', async () => {
         const ownerBalanceBefore = await owner.getBalance()
         const banksAmount = 1;
 
         const callCrowsSale = await banksCrowdSaleV3.send(
             alice.getSender(),
             {
-                value: toNano(banksAmount * 1.5),
+                value: toNano(banksAmount),
             },
             null
         )
@@ -166,14 +166,14 @@ describe('Banks crowd sale test', () => {
         expect(ownerBalanceBefore !== await owner.getBalance()).toEqual(true)
     });
 
-    it('should transfer 100 Bank to Alice and 100 * 1.5 TON to owner', async () => {
+    it('should transfer 100 Bank to Alice and 100 TON to owner', async () => {
         const ownerBalanceBefore = await owner.getBalance()
         const banksAmount = 100;
 
         await banksCrowdSaleV3.send(
             alice.getSender(),
             {
-                value: toNano(banksAmount * 1.5),
+                value: toNano(banksAmount),
             },
             null
         )
@@ -189,7 +189,7 @@ describe('Banks crowd sale test', () => {
         await banksCrowdSaleV3.send(
             alice.getSender(),
             {
-                value: toNano(banksAmount * 1.5 + 1),
+                value: toNano(banksAmount),
             },
             null
         )
@@ -206,7 +206,7 @@ describe('Banks crowd sale test', () => {
             await banksCrowdSaleV3.send(
                     randoms.at(-1).getSender(),
                     {
-                        value: toNano(banksAmount * 1.5 + 1),
+                        value: toNano(banksAmount),
                     },
                     i % 2 == 0? null : "buyBank"
             )
@@ -228,7 +228,7 @@ describe('Banks crowd sale test', () => {
         await banksCrowdSaleV3.send(
             alice.getSender(),
             {
-                value: toNano(banksAmount * 1.5 + 1),
+                value: toNano(banksAmount),
             },
             null
         )
@@ -270,7 +270,7 @@ describe('Banks crowd sale test', () => {
         const carryCrowdSale = await banksCrowdSaleV3.send(
             alice.getSender(),
             {
-                value: toNano(banksAmount * 1.5 + 1),
+                value: toNano(banksAmount),
             },
             null
         )
@@ -292,7 +292,7 @@ describe('Banks crowd sale test', () => {
         await banksCrowdSaleV3.send(
             alice.getSender(),
             {
-                value: toNano(banksAmount * 1.5),
+                value: toNano(banksAmount),
             },
             null
         )
@@ -304,7 +304,7 @@ describe('Banks crowd sale test', () => {
         const refCrowdSale = await banksCrowdSaleV3.send(
             tony.getSender(),
             {
-                value: toNano(banksAmount * 1.5),
+                value: toNano(banksAmount),
             },
             {
                 $$type: 'ReferralAddress',
