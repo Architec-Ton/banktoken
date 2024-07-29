@@ -91,21 +91,7 @@ export async function run(provider: NetworkProvider) {
         })
     };
 
-    const setBankOffset: OutActionSendMsg = {
-        type: 'sendMsg',
-        mode: SendMode.IGNORE_ERRORS,
-        outMsg: internal_relaxed({
-            to: banksCrowdSaleV3.address,
-            value: toNano('0.05'),
-            init: banksCrowdSaleV3.init,
-            body: beginCell().store(CS.storeSetBankOffset({
-                $$type: 'SetBankOffset',
-                offset: totalBanksOffset
-            })).endCell()
-        })
-    };
-
-    let outMsgs = [setBankOffset, bankTransferToCrowdsaleMsg, setBanksCrowdSaleV3JettonWallet, addJettonAddress];
+    let outMsgs = [bankTransferToCrowdsaleMsg, setBanksCrowdSaleV3JettonWallet, addJettonAddress];
     queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 
     const changeBankOwnerMsg: OutActionSendMsg = {

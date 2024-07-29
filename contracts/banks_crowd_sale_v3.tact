@@ -27,6 +27,7 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
     price3stage: Int as uint32;
     price4stage: Int as uint32;
     totalBanksOffset: Int as uint32;
+    max_for_sale: Int as uint32;
 
     jetton_wallet: Address;
     jetton_master: Address;
@@ -38,7 +39,7 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
     init(jetton_master: Address) {
         self.saleEnabled = true;
         self.totalBanks = 0;
-        self.totalBanksOffset = 107613;
+        self.totalBanksOffset = 0;
         self.owner = context().sender;
         self.price1stage = ton("1");
         self.price2stage = ton("1.5");
@@ -47,6 +48,7 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
 
         self.jetton_wallet = myAddress();
         self.jetton_master = jetton_master;
+        self.max_for_sale = 2_700_000; // 3_000_000 (max_supply) - 300_000 (team jettons);
     }
 
     get fun TotalBanks(): Int {
@@ -100,7 +102,7 @@ contract BanksCrowdSaleV3 with Deployable, OwnableTransferable {
 
     fun payBank(buyer: Address, tons: Int, is_ref: Bool) {
         require(self.saleEnabled, "Sale stopped");
-        require((self.totalBanks + self.totalBanksOffset) <= 2_800_000, "Sale ended");
+        require((self.totalBanks + self.totalBanksOffset) <= self.max_for_sale, "Sale ended");
 
         let bankPrice: Int = self.price1stage; //Bank cost in nanoTon
         if (self.totalBanks + self.totalBanksOffset > 50_000) {
