@@ -75,11 +75,10 @@ export async function run(provider: NetworkProvider, args: string[]) {
         //     forward_ton_amount: 0n,
         //     forward_payload: beginCell().endCell()
         // }
-        // const changeOwner: BJ.ChangeOwner = {
-        //     $$type: 'ChangeOwner',
-        //     queryId: 0n,
-        //     newOwner: Address.parse('')
-        // }
+        const changeOwner: CS.SetNewOwner = {
+            $$type: 'SetNewOwner',
+            new_owner: Address.parse('0QCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xeroso3_')
+        }
         // const setJettonWallet: CS.SetJettonWallet = {
         //     $$type: 'SetJettonWallet',
         //     jetton_wallet: Address.parse('')
@@ -88,20 +87,20 @@ export async function run(provider: NetworkProvider, args: string[]) {
         const bodySimple = beginCell().endCell()
         const bodyBankJettonTransfer = beginCell().store(BJW.storeJettonTransfer(bankJettonTransfer)).endCell()
         // const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
-        // const bodyChangeOwner = beginCell().store(BJ.storeChangeOwner(changeOwner)) // используется для ARC тоже
+        const bodyChangeOwner = beginCell().store(CS.storeSetNewOwner(changeOwner)).endCell() // используется для ARC тоже
         // const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet(setJettonWallet)).endCell()
 
         const tonAmount = 0.1
 
         const request: MS.Request = {
             $$type: 'Request',
-            requested: multisigJettonContractBNK.address,
-            to: multisigJettonContractBNK.address,
+            requested: Address.parse('kQCGPhwK3XWC32jQ3neY2_TFQP6UxHybUz_5cN3_ufScxBHr'),
+            to: Address.parse('kQCGPhwK3XWC32jQ3neY2_TFQP6UxHybUz_5cN3_ufScxBHr'),
             value: toNano(tonAmount),
             timeout: BigInt(Math.floor(Date.now() / 1000 + 60 * 60 * 24)),
             bounce: false,
             mode: 2n,
-            body: bodyBankJettonTransfer //bodySimple 
+            body: bodyChangeOwner //bodySimple
         };
         const timestamp = BigInt(Math.floor(Date.now() / 1000));
 

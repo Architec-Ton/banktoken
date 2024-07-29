@@ -22,14 +22,14 @@ export async function run(provider: NetworkProvider) {
 
     const highloadWalletV3 = provider.open(HighloadWallet);
 
-    await highloadWalletV3.sendDeploy(provider.sender(), toNano('30')); // сколько TON
+    await highloadWalletV3.sendDeploy(provider.sender(), toNano('3')); // сколько TON
     while (!(await provider.isContractDeployed(highloadWalletV3.address))) {
         await sleep(2000);
         console.log('wait for deploy');
     }
 
     const members = getMultisig();
-    const multisig = provider.open(await MS.Multisig.fromInit(members, 3n, 3n));
+    const multisig = provider.open(await MS.Multisig.fromInit(members, 4n, 3n));
     const multisigDeploy: OutActionSendMsg = {
         type: 'sendMsg',
         mode: SendMode.IGNORE_ERRORS,
@@ -96,8 +96,6 @@ export async function run(provider: NetworkProvider) {
     await provider.waitForDeploy(arcJettonMaster.address);
     await provider.waitForDeploy(bankJettonMaster.address);
     await provider.waitForDeploy(banksCrowdSaleV3.address);
-    queryId = queryId.getNext();
-    console.log(queryId);
 
     console.log(
         highloadWalletV3.address,
