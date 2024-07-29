@@ -16,8 +16,11 @@ import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 import fs from 'node:fs';
 
 
-export function getRecipients(rows: string[], amount=0n) {
+export function getRecipients(filename: string, amount=0n) {
     const recipients = [];
+
+    const fileAirdrop = fs.readFileSync('./airdrop_files/' + filename, 'utf8');
+    const rows = fileAirdrop.split('\n');
 
     for (let csvrow of rows) {
         const columns = csvrow.split(';');
@@ -30,28 +33,12 @@ export function getRecipients(rows: string[], amount=0n) {
     return recipients
 }
 
-export function BankTransferMsgBuilder(bankJettonContract: OpenedContract<BankJettonWallet>, owner: any) {
-    return (address: Address, amount: bigint) => {
-        return {
-            to: bankJettonContract.address,
-            value: toNano('0.07'),
-            body:
-                beginCell()
-                    .store(BJ.storeJettonTransfer(getJettonTransferBuilder(address, amount, owner.address, false)))
-                    .endCell()
-        };
-    };
-}
-
 export async function HLWAirdrop(highloadWalletV3: OpenedContract<HighloadWalletV3>, keyPair: KeyPair, queryId: HighloadQueryId,
                                  highloadWalletV3BankJettonContract: OpenedContract<BankJettonWallet>,
                                  arcJettonMaster: OpenedContract<ArcJetton>, filename: string, amount: bigint) {
     const batchShift = 250;
 
-    const fileAirdrop = fs.readFileSync('./airdrop_files/' + filename, 'utf8');
-    const rows = fileAirdrop.split('\n');
-
-    const recipients = getRecipients(rows, amount)
+    const recipients = getRecipients(filename, amount)
 
     for (let i = 0; i < recipients.length / batchShift; ++i) {
         const outMsgsBanks: OutActionSendMsg[] = [];
@@ -72,10 +59,6 @@ export async function HLWAirdrop(highloadWalletV3: OpenedContract<HighloadWallet
                 })
             });
 
-            // let multi = 100n
-            // if (nomises.has(address.toString())) {
-            //     multi = 110n
-            // }
             outMsgsArcs.push({
                 type: 'sendMsg',
                 mode: SendMode.IGNORE_ERRORS,
@@ -87,31 +70,33 @@ export async function HLWAirdrop(highloadWalletV3: OpenedContract<HighloadWallet
                             .store(AJ.storeMint({
                                 $$type: 'Mint',
                                 to: address,
-                                amount: toNano(amount * 100n)// * multi)
+                                amount: toNano(amount * 100n)
                             }))
                             .endCell()
                 })
             });
         }
 
-        let createdAt = Math.floor(Date.now() / 1000 - 100);
-        await HLWSend(highloadWalletV3, keyPair, outMsgsBanks, queryId, createdAt);
-        while (!highloadWalletV3.getProcessed(queryId)) {
-            await sleep(2000);console.log('wait for processing')
-        }
-        queryId = queryId.getNext();
-        console.log(queryId)
+        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsBanks, queryId);
 
-        createdAt = Math.floor(Date.now() / 1000 - 100);
-        await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId, createdAt);
-        while (!highloadWalletV3.getProcessed(queryId)) {
-            await sleep(2000);console.log('wait for processing')
-        }
-        queryId = queryId.getNext();
-        console.log(queryId)
+        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId);
     }
+
+    return queryId
 }
 
-export async function HLWSend(highloadWalletV3: any, keyPair: KeyPair, outMsgs: OutActionSendMsg[], queryId: HighloadQueryId, createdAt: number) {
-    return await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, queryId, DEFAULT_TIMEOUT, createdAt);
+export async function HLWSend(highloadWalletV3: OpenedContract<HighloadWalletV3>, keyPair: KeyPair,
+                              outMsgs: OutActionSendMsg[], queryId: HighloadQueryId) {
+    const createdAt = Math.floor(Date.now() / 1000 - 100);
+
+    await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, queryId, DEFAULT_TIMEOUT, createdAt);
+
+    while (!highloadWalletV3.getProcessed(queryId)) {
+        await sleep(2000);
+        console.log('wait for processing')
+    }
+    queryId = queryId.getNext();
+    console.log(queryId)
+
+    return queryId
 }

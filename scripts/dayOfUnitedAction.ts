@@ -108,7 +108,7 @@ export async function run(provider: NetworkProvider) {
     }
     const totalBanksOffset = banksAirdropSum + 300000n;
 
-    const mnemonic = ['life', 'jump', 'setup', 'punch', 'enough', 'palace', 'submit', 'knock', 'crane', 'gloom', 'account', 'side', 'blush', 'debate', 'notice', 'isolate', 'census', 'sort', 'gas', 'civil', 'desk', 'stumble', 'search', 'battle'] //    process.env.HLW_WALLET_MNEMONIC!.split(' ')
+    const mnemonic = process.env.HLW_WALLET_MNEMONIC!.split(' ')
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const code = await compile('HighloadWalletV3');
 
@@ -199,8 +199,7 @@ export async function run(provider: NetworkProvider) {
 
     let outMsgs: OutActionSendMsg[] = [multisigDeploy, arcDeploy, bankDeploy, banksCrowdSaleV3Deploy];
 
-    let createdAt = Math.floor(Date.now() / 1000 - 100);
-    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt);
+    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
     while (!highloadWalletV3.getProcessed(queryId)) {
         await sleep(2000);console.log('wait for processing')
     }
@@ -288,8 +287,7 @@ export async function run(provider: NetworkProvider) {
     };
 
     outMsgs = [setBankOffset, bankTransferToCrowdsaleMsg, bankTransferToMultisigMsg, setBanksCrowdSaleV3JettonWallet];
-    createdAt = Math.floor(Date.now() / 1000 - 100);
-    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt);
+    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
     while (!highloadWalletV3.getProcessed(queryId)) {
         await sleep(2000);console.log('wait for processing')
     }
@@ -337,16 +335,14 @@ export async function run(provider: NetworkProvider) {
             });
         }
 
-        createdAt = Math.floor(Date.now() / 1000 - 100);
-        await HLWSend(highloadWalletV3, keyPair, outMsgsBanks, queryId, createdAt);
+        await HLWSend(highloadWalletV3, keyPair, outMsgsBanks, queryId);
         while (!highloadWalletV3.getProcessed(queryId)) {
             await sleep(2000);console.log('wait for processing')
         }
         queryId = queryId.getNext();
         console.log(queryId)
 
-        createdAt = Math.floor(Date.now() / 1000 - 100);
-        await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId, createdAt);
+        await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId);
         while (!highloadWalletV3.getProcessed(queryId)) {
             await sleep(2000);console.log('wait for processing')
         }
@@ -439,8 +435,7 @@ export async function run(provider: NetworkProvider) {
     };
 
     outMsgs = [addJettonAddress, changeArcMinterMsg, changeCrowdSaleOwnerMsg, changeBankOwnerMsg, changeArcOwnerMsg];
-    createdAt = Math.floor(Date.now() / 1000 - 100);
-    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt);
+    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
     while (!highloadWalletV3.getProcessed(queryId)) {
         await sleep(2000);console.log('wait for processing')
     }

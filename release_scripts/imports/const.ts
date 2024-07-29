@@ -2,9 +2,6 @@ export const SUBWALLET_ID = 0x10ad;
 
 export const DEFAULT_TIMEOUT = 60 * 60;
 
-export const maxKeyCount   = (1 << 13); //That is max key count not max key value
-export const maxShift      = maxKeyCount - 1;
-
 export const BNKjettonParams = {
     name: 'BNK jetton',
     description: 'BNK is a limited supply token that is the primary mining method for the official ARH token from the Arhitec.ton project.',

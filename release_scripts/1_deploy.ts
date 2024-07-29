@@ -12,13 +12,13 @@ import * as MS from '../build/Multisig/tact_Multisig';
 import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
-import { members } from './multisigMembers';
+import { getMultisig } from './multisigMembers';
 import { getHLW } from './highloadWallet';
 
 
 export async function run(provider: NetworkProvider) {
     let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
-    const {keyPair, HighloadWallet} = await getHLW()
+    const { keyPair, HighloadWallet } = await getHLW();
 
     const highloadWalletV3 = provider.open(HighloadWallet);
 
@@ -28,6 +28,7 @@ export async function run(provider: NetworkProvider) {
         console.log('wait for deploy');
     }
 
+    const members = getMultisig();
     const multisig = provider.open(await MS.Multisig.fromInit(members, 3n, 3n));
     const multisigDeploy: OutActionSendMsg = {
         type: 'sendMsg',
@@ -89,13 +90,8 @@ export async function run(provider: NetworkProvider) {
     };
 
     let outMsgs: OutActionSendMsg[] = [multisigDeploy, arcDeploy, bankDeploy, banksCrowdSaleV3Deploy];
+    queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 
-    let createdAt = Math.floor(Date.now() / 1000 - 100);
-    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt);
-    while (!highloadWalletV3.getProcessed(queryId)) {
-        await sleep(2000);
-        console.log('wait for processing');
-    }
     await provider.waitForDeploy(multisig.address);
     await provider.waitForDeploy(arcJettonMaster.address);
     await provider.waitForDeploy(bankJettonMaster.address);

@@ -1,6 +1,6 @@
 import { beginCell, OutActionSendMsg, SendMode, toNano } from '@ton/core';
 import '@ton/test-utils';
-import { NetworkProvider, sleep } from '@ton/blueprint';
+import { NetworkProvider } from '@ton/blueprint';
 import { ARCjettonParams, BNKjettonParams } from './imports/const';
 
 import { HLWSend } from '../utils/HLWv3-helpers';
@@ -13,18 +13,19 @@ import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
 import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
-import { members } from './multisigMembers';
+import { getMultisig } from './multisigMembers';
 import { getHLW } from './highloadWallet';
 
 
 export async function run(provider: NetworkProvider) {
-    const totalBanksOffset = 0n
+    const totalBanksOffset = 0n;
 
-    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 10n);
-    const {keyPair, HighloadWallet} = await getHLW()
+    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
+    const { keyPair, HighloadWallet } = await getHLW();
 
     const highloadWalletV3 = provider.open(HighloadWallet);
 
+    const members = getMultisig();
     const multisig = provider.open(await MS.Multisig.fromInit(members, 3n, 3n));
 
     const bankJettonMaster = provider.open(await BJ.BankJetton.fromInit(highloadWalletV3.address, buildOnchainMetadata(BNKjettonParams)));
@@ -105,14 +106,7 @@ export async function run(provider: NetworkProvider) {
     };
 
     let outMsgs = [setBankOffset, bankTransferToCrowdsaleMsg, setBanksCrowdSaleV3JettonWallet, addJettonAddress];
-    let createdAt = Math.floor(Date.now() / 1000 - 100);
-    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt);
-    while (!highloadWalletV3.getProcessed(queryId)) {
-        await sleep(2000);
-        console.log('wait for processing')
-    }
-    queryId = queryId.getNext();
-    console.log(queryId)
+    queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 
     const changeBankOwnerMsg: OutActionSendMsg = {
         type: 'sendMsg',
@@ -183,12 +177,5 @@ export async function run(provider: NetworkProvider) {
     };
 
     outMsgs = [changeArcMinterMsg, changeCrowdSaleOwnerMsg, changeBankOwnerMsg, changeArcOwnerMsg];
-    createdAt = Math.floor(Date.now() / 1000 - 100);
-    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt);
-    while (!highloadWalletV3.getProcessed(queryId)) {
-        await sleep(2000);
-        console.log('wait for processing')
-    }
-    queryId = queryId.getNext();
-    console.log(queryId)
+    queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 }
