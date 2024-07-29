@@ -18,20 +18,27 @@ export async function run(provider: NetworkProvider, args: string[]) {
 
     const totalWeight = 3n;
     const requireWeight = 3n;
-
+    const BNKMasterStr = 'kQBuFWV6jW_9F69A3qjn5rpqfG4eIMBJs9GFSrZU7d33EmIG'; 
+    const addressToStr = '0QAqfB6nE0M8DoiTizqHUSihnZeyKhupgKxikccm5mJS0HVe'
+    const multisigContractStr = 'kQCILmBSe0EXI6dKyuvBFlmviCURyvb4_4iT4TCGzMNbu1Rf' //testnet multisig
     let key: DictionaryKey<Address>;
     let value: DictionaryValue<bigint>;
     const members = Dictionary.empty<Address, bigint>(key, value);
 
-    const owner1Address = Address.parse(process.env.OWNER_1_ADDRESS!);
-    const owner2Address = Address.parse(process.env.OWNER_2_ADDRESS!);
-    const owner3Address = Address.parse(process.env.OWNER_3_ADDRESS!);
+    // const owner1Address = Address.parse(process.env.OWNER_1_ADDRESS!);
+    // const owner2Address = Address.parse(process.env.OWNER_2_ADDRESS!);
+    // const owner3Address = Address.parse(process.env.OWNER_3_ADDRESS!);
 
-    members.set(owner1Address, 1n);
-    members.set(owner2Address, 1n);
-    members.set(owner3Address, 1n);
+    // members.set(owner1Address, 1n);
+    // members.set(owner2Address, 1n);
+    // members.set(owner3Address, 1n);
 
-    const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
+    // const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
+    const multisig = provider.open(MS.Multisig.fromAddress(Address.parse(multisigContractStr))); 
+
+    const bankJettonContract = provider.open(await BJ.BankJetton.fromAddress(Address.parse(BNKMasterStr)));
+    const multisigJettonWalletBNK = await bankJettonContract.getGetWalletAddress(multisig.address);
+    const multisigJettonContractBNK  = provider.open(BJW.BankJettonWallet.fromAddress(multisigJettonWalletBNK))
 
 
     if (!(await provider.isContractDeployed(multisig.address))) {
@@ -39,7 +46,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         return;
     }
 
-    let addressTo = Address.parse(process.env.ADDRESS_TO!);
+    let addressTo = Address.parse(addressToStr); //process.env.ADDRESS_TO!
 
     if (!(await provider.isContractDeployed(addressTo))) {
         ui.write(`Error: Contract at address ${addressTo} is not deployed!`);
@@ -53,48 +60,48 @@ export async function run(provider: NetworkProvider, args: string[]) {
             query_id: 0n,
             destination: destinationAddress,
             response_destination: destinationAddress,
-            amount: 0n,
+            amount: 1000n,
             custom_payload: beginCell().endCell(),
             forward_ton_amount: 0n,
             forward_payload: beginCell().endCell()
         }
-        const arcJettonTransfer: AJW.JettonTransfer = {
-            $$type: 'JettonTransfer',
-            query_id: 0n,
-            destination: destinationAddress,
-            response_destination: destinationAddress,
-            amount: 0n,
-            custom_payload: beginCell().endCell(),
-            forward_ton_amount: 0n,
-            forward_payload: beginCell().endCell()
-        }
-        const changeOwner: BJ.ChangeOwner = {
-            $$type: 'ChangeOwner',
-            queryId: 0n,
-            newOwner: Address.parse('')
-        }
-        const setJettonWallet: CS.SetJettonWallet = {
-            $$type: 'SetJettonWallet',
-            jetton_wallet: Address.parse('')
-        }
+        // const arcJettonTransfer: AJW.JettonTransfer = {
+        //     $$type: 'JettonTransfer',
+        //     query_id: 0n,
+        //     destination: destinationAddress,
+        //     response_destination: destinationAddress,
+        //     amount: 0n,
+        //     custom_payload: beginCell().endCell(),
+        //     forward_ton_amount: 0n,
+        //     forward_payload: beginCell().endCell()
+        // }
+        // const changeOwner: BJ.ChangeOwner = {
+        //     $$type: 'ChangeOwner',
+        //     queryId: 0n,
+        //     newOwner: Address.parse('')
+        // }
+        // const setJettonWallet: CS.SetJettonWallet = {
+        //     $$type: 'SetJettonWallet',
+        //     jetton_wallet: Address.parse('')
+        // }
 
         const bodySimple = beginCell().endCell()
         const bodyBankJettonTransfer = beginCell().store(BJW.storeJettonTransfer(bankJettonTransfer)).endCell()
-        const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
-        const bodyChangeOwner = beginCell().store(BJ.storeChangeOwner(changeOwner)) // используется для ARC тоже
-        const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet(setJettonWallet)).endCell()
+        // const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
+        // const bodyChangeOwner = beginCell().store(BJ.storeChangeOwner(changeOwner)) // используется для ARC тоже
+        // const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet(setJettonWallet)).endCell()
 
-        const tonAmount = 1
+        const tonAmount = 0.1
 
         const request: MS.Request = {
             $$type: 'Request',
-            requested: addressTo,
-            to: addressTo,
+            requested: multisigJettonContractBNK.address,
+            to: multisigJettonContractBNK.address,
             value: toNano(tonAmount),
             timeout: BigInt(Math.floor(Date.now() / 1000 + 60 * 60 * 24)),
             bounce: false,
             mode: 2n,
-            body: bodySimple
+            body: bodyBankJettonTransfer //bodySimple 
         };
         const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
