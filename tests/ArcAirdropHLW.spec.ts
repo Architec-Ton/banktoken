@@ -1,5 +1,4 @@
 import {buildOnchainMetadata, getJettonTransferBuilder} from "../utils/jetton-helpers";
-import {HLWSend} from "../utils/HLWv3-helpers";
 import {DEFAULT_TIMEOUT, SUBWALLET_ID, maxQueryId} from "./imports/const";
 import {getSecureRandomBytes, KeyPair, keyPairFromSeed} from "ton-crypto";
 import {HighloadWalletV3} from "../wrappers/HighloadWalletV3";
@@ -15,6 +14,12 @@ import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_B
 
 import {randomInt} from "node:crypto";
 
+
+async function HLWSend(highloadWalletV3: any, keyPair: KeyPair,
+                       outMsgs: OutActionSendMsg[], queryId: HighloadQueryId, createdAt: number) {
+
+    return await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, queryId, DEFAULT_TIMEOUT, createdAt);
+}
 
 describe('ARC Airdrop test', () => {
     let owner: SandboxContract<TreasuryContract>;

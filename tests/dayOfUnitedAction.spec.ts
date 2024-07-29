@@ -18,7 +18,6 @@ import { compile } from '@ton/blueprint';
 import { HighloadWalletV3 } from '../wrappers/HighloadWalletV3';
 import { DEFAULT_TIMEOUT, SUBWALLET_ID } from './imports/const';
 
-import { HLWSend } from '../utils/HLWv3-helpers';
 import { HighloadQueryId } from '../wrappers/HighloadQueryId';
 import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 import { buildOnchainMetadata, getJettonTransferBuilder } from '../utils/jetton-helpers';
@@ -33,6 +32,11 @@ import { BankJettonWallet } from '../build/BankJetton/tact_BankJettonWallet';
 import { Multisig } from '../build/Multisig/tact_Multisig';
 import { StakeStorage } from '../build/StakeStorage/tact_StakeStorage';
 
+async function HLWSend(highloadWalletV3: any, keyPair: KeyPair,
+                       outMsgs: OutActionSendMsg[], queryId: HighloadQueryId, createdAt: number) {
+
+    return await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, queryId, DEFAULT_TIMEOUT, createdAt);
+}
 
 describe('Independence Day', () => {
     let blockchain: Blockchain;
