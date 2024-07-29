@@ -1,37 +1,20 @@
-import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, SendMode, toNano } from '@ton/core';
+import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { NetworkProvider } from '@ton/blueprint';
 
 import 'dotenv/config';
-import { Multisig, Request } from '../build/Multisig/tact_Multisig';
+import * as MS from '../build/Multisig/tact_Multisig';
 import { MultisigSigner } from '../build/Multisig/tact_MultisigSigner';
 
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
 import * as AJW from '../build/ArcJetton/tact_ArcJettonWallet';
-import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
 
 require('dotenv').config()
 
 export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
-    const multisigAddress = Address.parse(process.env.MULTISIG_ADDRESS)!;
-
-    if (!(await provider.isContractDeployed(multisigAddress))) {
-        ui.write(`Error: Contract at address ${multisigAddress} is not deployed!`);
-        return;
-    }
-
-    let addressTo = Address.parse(process.env.ADDRESS_TO!);
-
-    if (!(await provider.isContractDeployed(addressTo))) {
-        ui.write(`Error: Contract at address ${addressTo} is not deployed!`);
-        return;
-    }
-
-    const multisig = provider.open(
-        Multisig.fromAddress(multisigAddress)
-    );
 
     const totalWeight = 3n;
     const requireWeight = 3n;
@@ -47,6 +30,21 @@ export async function run(provider: NetworkProvider, args: string[]) {
     members.set(owner1Address, 1n);
     members.set(owner2Address, 1n);
     members.set(owner3Address, 1n);
+
+    const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
+
+
+    if (!(await provider.isContractDeployed(multisig.address))) {
+        ui.write(`Error: Contract at address ${multisig.address} is not deployed!`);
+        return;
+    }
+
+    let addressTo = Address.parse(process.env.ADDRESS_TO!);
+
+    if (!(await provider.isContractDeployed(addressTo))) {
+        ui.write(`Error: Contract at address ${addressTo} is not deployed!`);
+        return;
+    }
 
     try {
         const destinationAddress = addressTo
@@ -70,27 +68,33 @@ export async function run(provider: NetworkProvider, args: string[]) {
             forward_ton_amount: 0n,
             forward_payload: beginCell().endCell()
         }
+        const changeOwner: BJ.ChangeOwner = {
+            $$type: 'ChangeOwner',
+            queryId: 0n,
+            newOwner: Address.parse('')
+        }
+        const setJettonWallet: CS.SetJettonWallet = {
+            $$type: 'SetJettonWallet',
+            jetton_wallet: Address.parse('')
+        }
 
         const bodySimple = beginCell().endCell()
         const bodyBankJettonTransfer = beginCell().store(BJW.storeJettonTransfer(bankJettonTransfer)).endCell()
         const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
-
-        const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet({
-            $$type: 'SetJettonWallet',
-            jetton_wallet: Address.parse('kQBoE25QwlWr38wBPANIyhgMK8XeCoBTIN1wKU7pNqDIG9wa')
-        })).endCell()
+        const bodyChangeOwner = beginCell().store(BJ.storeChangeOwner(changeOwner)) // используется для ARC тоже
+        const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet(setJettonWallet)).endCell()
 
         const tonAmount = 1
 
-        const request: Request = {
+        const request: MS.Request = {
             $$type: 'Request',
             requested: addressTo,
             to: addressTo,
-            value: toNano(1),
+            value: toNano(tonAmount),
             timeout: BigInt(Math.floor(Date.now() / 1000 + 60 * 60 * 24)),
             bounce: false,
             mode: 2n,
-            body: bodySetCrowdSaleWallet
+            body: bodySimple
         };
         const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
