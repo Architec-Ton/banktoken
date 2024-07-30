@@ -10,7 +10,7 @@ import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import { HLWAirdrop } from '../utils/HLWv3-helpers';
 
 export async function getHLW() {
-    const mnemonic = process.env.HLW_WALLET_MNEMONIC!.split(' ')//process.env.HLW_WALLET_MNEMONIC!.split(' ');
+    const mnemonic = process.env.HLW_WALLET_MNEMONIC!.split(' ')
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const code = await compile('HighloadWalletV3');
 
