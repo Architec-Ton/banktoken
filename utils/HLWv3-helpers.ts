@@ -23,11 +23,18 @@ export function getRecipients(filename: string, amount=0n) {
     const rows = fileAirdrop.split('\n');
 
     for (let csvrow of rows) {
-        const columns = csvrow.split(';');
-        recipients.push({
-            address: Address.parse(columns[0]),
-            amount: amount ? amount : BigInt(columns[1])
-        });
+        const columns = csvrow.split(',');
+
+        console.log(columns)
+        if (columns[0].length > 0){
+            recipients.push({
+                address: Address.parse(columns[0]),
+                amount: amount ? amount : BigInt(columns[1])
+            });
+            }
+        else {
+            continue;
+        };
     }
 
     return recipients
@@ -96,7 +103,7 @@ export async function HLWSend(highloadWalletV3: OpenedContract<HighloadWalletV3>
         console.log('wait for processing')
     }
     queryId = queryId.getNext();
-    console.log(queryId)
+    console.log('queryId.getNext: ', queryId)
 
     return queryId
 }
