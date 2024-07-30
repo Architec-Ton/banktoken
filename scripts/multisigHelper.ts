@@ -1,4 +1,4 @@
-import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, toNano } from '@ton/core';
+import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, SendMode, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { NetworkProvider } from '@ton/blueprint';
 
@@ -25,16 +25,16 @@ export async function run(provider: NetworkProvider, args: string[]) {
     let value: DictionaryValue<bigint>;
     const members = Dictionary.empty<Address, bigint>(key, value);
 
-    // const owner1Address = Address.parse(process.env.OWNER_1_ADDRESS!);
-    // const owner2Address = Address.parse(process.env.OWNER_2_ADDRESS!);
-    // const owner3Address = Address.parse(process.env.OWNER_3_ADDRESS!);
+    const owner1Address = Address.parse(process.env.OWNER_1_ADDRESS!);
+    const owner2Address = Address.parse(process.env.OWNER_2_ADDRESS!);
+    const owner3Address = Address.parse(process.env.OWNER_3_ADDRESS!);
 
-    // members.set(owner1Address, 1n);
-    // members.set(owner2Address, 1n);
-    // members.set(owner3Address, 1n);
+    members.set(owner1Address, 1n);
+    members.set(owner2Address, 1n);
+    members.set(owner3Address, 1n);
 
     // const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
-    const multisig = provider.open(MS.Multisig.fromAddress(Address.parse(multisigContractStr))); 
+    const multisig = provider.open(MS.Multisig.fromAddress(Address.parse('kQCPlCLYQ6RMvituIVK3JTzXBZjshdkDvjmsv9QEmXC1eYd4')));
 
     const bankJettonContract = provider.open(await BJ.BankJetton.fromAddress(Address.parse(BNKMasterStr)));
     const multisigJettonWalletBNK = await bankJettonContract.getGetWalletAddress(multisig.address);
@@ -94,13 +94,13 @@ export async function run(provider: NetworkProvider, args: string[]) {
 
         const request: MS.Request = {
             $$type: 'Request',
-            requested: Address.parse('kQCGPhwK3XWC32jQ3neY2_TFQP6UxHybUz_5cN3_ufScxBHr'),
-            to: Address.parse('kQCGPhwK3XWC32jQ3neY2_TFQP6UxHybUz_5cN3_ufScxBHr'),
-            value: toNano(tonAmount),
+            requested: Address.parse('EQCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xerosmuw'),
+            to: Address.parse('EQCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xerosmuw'),
+            value: 0n,
             timeout: BigInt(Math.floor(Date.now() / 1000 + 60 * 60 * 24)),
             bounce: false,
-            mode: 2n,
-            body: bodyChangeOwner //bodySimple
+            mode: 128n,
+            body: bodySimple
         };
         const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
