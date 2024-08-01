@@ -1,9 +1,13 @@
-import { toNano } from '@ton/core';
-import { ArcJetton } from '../wrappers/ArcJetton';
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
+import { ARCjettonParams } from './imports/const';
+import * as AJ from '../build/ArcJetton/tact_ArcJetton';
+
+import { Address, toNano } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const arcJetton = provider.open(await ArcJetton.fromInit());
+    const ownerAddress = Address.parse('')
+    const arcJetton = provider.open(await AJ.ArcJetton.fromInit(ownerAddress, buildOnchainMetadata(ARCjettonParams)));
 
     await arcJetton.send(
         provider.sender(),
@@ -17,6 +21,4 @@ export async function run(provider: NetworkProvider) {
     );
 
     await provider.waitForDeploy(arcJetton.address);
-
-    // run methods on `arcJetton`
 }

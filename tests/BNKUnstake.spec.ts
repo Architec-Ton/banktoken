@@ -1,12 +1,13 @@
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
+import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
+import * as AJ from '../build/ArcJetton/tact_ArcJetton';
+import * as AJW from '../build/ArcJetton/tact_ArcJettonWallet';
+import { StakeStorage } from '../wrappers/StakeStorage';
+
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { toNano, beginCell, fromNano } from '@ton/core';
 import '@ton/test-utils';
-import { buildOnchainMetadata } from '../utils/jetton-helpers';
-import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
-import * as BJW /* { BankJettonWallet, JettonTransfer } */ from '../build/BankJetton/tact_BankJettonWallet';
-import * as AJ /* { ArcJetton, JettonBurn } */ from '../build/ArcJetton/tact_ArcJetton';
-import * as AJW /* { ArcJettonWallet, JettonTransfer } */ from '../build/ArcJetton/tact_ArcJettonWallet';
-import { StakeStorage } from '../wrappers/StakeStorage';
 
 describe('BankUnStaking', () => {
     let blockchain: Blockchain;

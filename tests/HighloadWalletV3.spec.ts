@@ -1,15 +1,17 @@
 import { Blockchain, EmulationError, SandboxContract, createShardAccount, internal } from '@ton/sandbox';
-import { beginCell, Cell, SendMode, toNano, Address, internal as internal_relaxed, Dictionary, BitString, OutActionSendMsg } from '@ton/core';
 import {HighloadWalletV3, TIMEOUT_SIZE, TIMESTAMP_SIZE} from '../wrappers/HighloadWalletV3';
+import {SUBWALLET_ID, Errors, DEFAULT_TIMEOUT, maxKeyCount, maxShift} from "./imports/const";
+import {HighloadQueryId} from "../wrappers/HighloadQueryId";
+
+import { MsgGenerator } from '../wrappers/MsgGenerator';
+import { getRandomInt } from '../utils';
+
 import '@ton/test-utils';
+import { beginCell, Cell, SendMode, toNano, Address, internal as internal_relaxed, Dictionary, BitString, OutActionSendMsg } from '@ton/core';
 import { getSecureRandomBytes, KeyPair, keyPairFromSeed } from "ton-crypto";
 import { randomBytes } from "crypto";
-import {SUBWALLET_ID, Errors, DEFAULT_TIMEOUT, maxKeyCount, maxShift} from "./imports/const";
 import { compile } from '@ton/blueprint';
-import { getRandomInt } from '../utils';
 import { findTransactionRequired, randomAddress } from '@ton/test-utils';
-import { MsgGenerator } from '../wrappers/MsgGenerator';
-import {HighloadQueryId} from "../wrappers/HighloadQueryId";
 
 
 describe('HighloadWalletV3', () => {
@@ -776,7 +778,6 @@ describe('HighloadWalletV3', () => {
         });
     });
     it('should ignore invalid message in payload', async () => {
-        const testAddr     = randomAddress(0);
         const badGenerator = new MsgGenerator(0);
         let queryIter    = new HighloadQueryId();
 

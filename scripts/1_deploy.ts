@@ -12,7 +12,7 @@ import * as MS from '../build/Multisig/tact_Multisig';
 import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
-import { getMultisig } from './multisigMembers';
+import { getMultisig } from './multisig';
 import { getHLW } from './highloadWallet';
 
 
@@ -22,7 +22,7 @@ export async function run(provider: NetworkProvider) {
 
     const highloadWalletV3 = provider.open(HighloadWallet);
 
-    await highloadWalletV3.sendDeploy(provider.sender(), toNano('3')); // сколько TON
+    await highloadWalletV3.sendDeploy(provider.sender(), toNano('3'));
     while (!(await provider.isContractDeployed(highloadWalletV3.address))) {
         await sleep(2000);
         console.log('wait for deploy');
@@ -90,7 +90,7 @@ export async function run(provider: NetworkProvider) {
     };
 
     let outMsgs: OutActionSendMsg[] = [multisigDeploy, arcDeploy, bankDeploy, banksCrowdSaleV3Deploy];
-    queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
+    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 
     await provider.waitForDeploy(multisig.address);
     await provider.waitForDeploy(arcJettonMaster.address);

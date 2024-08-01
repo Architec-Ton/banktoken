@@ -1,32 +1,17 @@
-import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
-//'@ton-community/sandbox';
-import { Cell, beginCell, toNano, BitReader, Builder } from '@ton/core';
-// import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 import { ArcJetton, JettonBurn } from '../build/ArcJetton/tact_ArcJetton';
-// wrappers/JettonExample_ArcJetton';
 import { ArcJettonWallet, JettonTransfer } from '../build/ArcJetton/tact_ArcJettonWallet';
-//../wrappers/JettonExample_ArcJettonWallet';
-// import '@ton-community/test-utils';
-import '@ton/test-utils';
-import { buildOnchainMetadata } from "../utils/jetton-helpers";
-import { isObject } from 'node:util';
-import { deserialize } from 'node:v8';
-import { deserializeBoc } from '@ton/core/dist/boc/cell/serialization';
-import { parseDict } from '@ton/core/dist/dict/parseDict';
-import { base64Decode } from '@ton/sandbox/dist/utils/base64';
-import { sha256 } from '@ton/crypto';
-import { BankStaking } from '../wrappers/BankStaking';
-import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
-import * as BJW /* { BankJettonWallet, JettonTransfer } */ from '../build/BankJetton/tact_BankJettonWallet';
-import { open } from 'node:fs';
-import * as fs from 'node:fs';
-import { bitsToBytes, bytesToBits } from '@ton/crypto/dist/utils/binary';
 
+import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { beginCell, toNano } from '@ton/core';
+import '@ton/test-utils';
+import { parseDict } from '@ton/core/dist/dict/parseDict';
+import { sha256 } from '@ton/crypto';
 
 
 describe('ARC jetton test', () => {
     let blockchain: Blockchain;
-    let bankStaking: SandboxContract<BankStaking>;
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;
     let jettonMaster: SandboxContract<ArcJetton>;

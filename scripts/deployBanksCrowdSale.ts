@@ -18,8 +18,7 @@ export async function run(provider: NetworkProvider) {
 
     await provider.waitForDeploy(banksCrowdSale.address);
 
-    // run methods on `banksCrowdSale`
-    let newOwner = Address.parse('UQAeV4crAaUoCJo5igUIzosJXcOjtb4W7ff7Qr0DrgXPRle_'); //https://tonscan.org/address/UQAeV4crAaUoCJo5igUIzosJXcOjtb4W7ff7Qr0DrgXPRle_
+    let newOwner = Address.parse('UQAeV4crAaUoCJo5igUIzosJXcOjtb4W7ff7Qr0DrgXPRle_');
     await banksCrowdSale.send(
         provider.sender(),
         {

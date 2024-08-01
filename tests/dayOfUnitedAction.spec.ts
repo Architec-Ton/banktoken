@@ -1,7 +1,8 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import {
     Address,
-    beginCell, Cell,
+    beginCell,
+    Cell,
     Dictionary,
     DictionaryKey,
     DictionaryValue,
@@ -23,14 +24,13 @@ import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 import { buildOnchainMetadata, getJettonTransferBuilder } from '../utils/jetton-helpers';
 
 import * as MS from '../build/Multisig/tact_Multisig';
+import { Multisig } from '../build/Multisig/tact_Multisig';
 import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
+import { BankJettonWallet } from '../build/BankJetton/tact_BankJettonWallet';
 import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import * as AJW from '../build/ArcJetton/tact_ArcJettonWallet';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
-import { BankJettonWallet } from '../build/BankJetton/tact_BankJettonWallet';
-import { Multisig } from '../build/Multisig/tact_Multisig';
-import { StakeStorage } from '../build/StakeStorage/tact_StakeStorage';
 
 async function HLWSend(highloadWalletV3: any, keyPair: KeyPair,
                        outMsgs: OutActionSendMsg[], queryId: HighloadQueryId, createdAt: number) {

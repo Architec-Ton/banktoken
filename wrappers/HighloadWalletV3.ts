@@ -19,7 +19,6 @@ import {
 import {sign} from "ton-crypto";
 import {OP} from "../tests/imports/const";
 import {HighloadQueryId} from "./HighloadQueryId";
-import { set } from '@ton/blueprint/dist/cli/set';
 
 // export const HighloadWalletV3Code = Cell.fromBoc(Buffer.from(CodeHex, "hex"))[0]
 

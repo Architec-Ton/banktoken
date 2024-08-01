@@ -1,83 +1,51 @@
-import {maxQueryId} from "../tests/imports/const";
-import {storeJettonTransfer} from "../build/ArcJetton/tact_ArcJetton";
-import {HLWSend} from "../utils/HLWv3-helpers";
-import {getJettonTransferBuilder} from "../utils/jetton-helpers";
-import {HighloadQueryId} from "../wrappers/HighloadQueryId";
-import {HighloadWalletV3} from '../wrappers/HighloadWalletV3';
+import { HighloadQueryId } from '../wrappers/HighloadQueryId';
+import { getHLW } from './highloadWallet';
+import { getRecipients, HLWSend } from '../utils/HLWv3-helpers';
 
-import {Address, beginCell, internal as internal_relaxed, OutActionSendMsg, SendMode, toNano} from '@ton/core';
-import '@ton/test-utils';
-import {NetworkProvider} from '@ton/blueprint';
-import {KeyPair, mnemonicToPrivateKey} from "ton-crypto";
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
+import { ARCjettonParams } from './imports/const';
+import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 
-import 'dotenv/config'
+import { beginCell, OutActionSendMsg, SendMode, toNano } from '@ton/core';
+import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
+import { NetworkProvider } from '@ton/blueprint';
 
-let keyPair: KeyPair;
-let highloadWalletV3: any
+export async function run(provider: NetworkProvider) {
+    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
 
-require('dotenv').config()
+    const { keyPair, HighloadWallet } = await getHLW();
 
+    const highloadWalletV3 = provider.open(HighloadWallet);
 
-export async function run(provider: NetworkProvider, args: string[]) {
-    const ui = provider.ui();
-    keyPair = await mnemonicToPrivateKey(process.env.WALLET_MNEMONIC!.split(' '));
+    const arcJettonMaster = provider.open(await AJ.ArcJetton.fromInit(highloadWalletV3.address, buildOnchainMetadata(ARCjettonParams)));
 
-    const address_HLW = Address.parse(process.env.HLWCONTRACT_ADDRESS!);
-    if (!(await provider.isContractDeployed(address_HLW))) {
-        ui.write(`Error: HLW Contract at address ${address_HLW} is not deployed!`);
-        return;
-    }
-    const address_jetton = Address.parse(process.env.JETTON_ADDRESS!);
+    const batchShift = 250;
 
-    if (!(await provider.isContractDeployed(address_HLW))) {
-        ui.write(`Error: HLW Contract at address ${address_HLW} is not deployed!`);
-        return;
-    }
+    const recipients = getRecipients('.csv');
 
-    highloadWalletV3 = provider.open(
-        HighloadWalletV3.createFromAddress(address_HLW)
-    );
+    for (let i = 0; i < recipients.length / batchShift; ++i) {
+        const outMsgsArcs: OutActionSendMsg[] = [];
+        const current_recipients = recipients.slice(batchShift * i, batchShift * (i + 1));
 
-    let bitnumber = 0n
-    let shift = 0n
-
-    try {
-        let outMsgs: OutActionSendMsg[];
-        const recipients = [
-            {address: 'UQCjaozbXUT-iIqMjBfuRC0OoJUZhxwnzH8UiLPtdso5Ecyu', amount: 3},
-            {address: 'UQBVZhqyseLY0maGkoXwhUOOO7-4BCfDQ8UQf2YcBEbe3CoK', amount: 5}
-        ]
-
-        const batchShift = 250
-
-        for (let i = 0; i < recipients.length / batchShift; ++i) {
-            outMsgs = []
-
-            for (let {address, amount} of recipients.slice(batchShift * i, (batchShift + 1) * i)) {
-                outMsgs.push({
-                    type: 'sendMsg',
-                    mode: SendMode.IGNORE_ERRORS,
-                    outMsg: internal_relaxed({
-                        to: address_jetton,
-                        value: toNano('0.05'),
-                        body:  beginCell()
-                            .store(storeJettonTransfer(getJettonTransferBuilder(Address.parse(address), amount)))
+        for (let { address, amount } of current_recipients) {
+            outMsgsArcs.push({
+                type: 'sendMsg',
+                mode: SendMode.IGNORE_ERRORS,
+                outMsg: internal_relaxed({
+                    to: arcJettonMaster.address,
+                    value: toNano('0.07'),
+                    body:
+                        beginCell()
+                            .store(AJ.storeMint({
+                                $$type: 'Mint',
+                                to: address,
+                                amount: toNano(amount * 10n)
+                            }))
                             .endCell()
-                    }),
                 })
-            }
-
-            if (bitnumber > maxQueryId) {
-                ++shift
-                bitnumber = 0n
-            }
-            const queryId = HighloadQueryId.fromShiftAndBitNumber(shift, bitnumber)
-            const createdAt = Math.floor(Date.now() / 1000 - 100)
-            await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt)
-
-            ++bitnumber
+            });
         }
-    } catch (err) {
-        console.error(err);
+
+        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId);
     }
 }

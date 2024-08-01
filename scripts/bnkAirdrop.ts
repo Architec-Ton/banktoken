@@ -1,83 +1,51 @@
-import {maxQueryId} from "../tests/imports/const";
-import {storeJettonTransfer} from "../build/BankJetton/tact_BankJetton";
-import {HLWSend} from "../utils/HLWv3-helpers";
-import {getJettonTransferBuilder} from "../utils/jetton-helpers";
-import {HighloadQueryId} from "../wrappers/HighloadQueryId";
-import {HighloadWalletV3} from '../wrappers/HighloadWalletV3';
+import { HighloadQueryId } from '../wrappers/HighloadQueryId';
+import { getHLW } from './highloadWallet';
+import { getRecipients, HLWSend } from '../utils/HLWv3-helpers';
 
-import {Address, beginCell, internal as internal_relaxed, OutActionSendMsg, SendMode, toNano} from '@ton/core';
-import '@ton/test-utils';
-import {NetworkProvider} from '@ton/blueprint';
-import {KeyPair, mnemonicToPrivateKey} from "ton-crypto";
+import { buildOnchainMetadata, getJettonTransferBuilder } from '../utils/jetton-helpers';
+import { NetworkProvider } from '@ton/blueprint';
+import { BNKjettonParams } from './imports/const';
+import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 
-import 'dotenv/config'
-
-let keyPair: KeyPair;
-let highloadWalletV3: any
-
-require('dotenv').config()
+import { beginCell, OutActionSendMsg, SendMode, toNano } from '@ton/core';
+import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 
 
-export async function run(provider: NetworkProvider, args: string[]) {
-    const ui = provider.ui();
-    keyPair = await mnemonicToPrivateKey(process.env.WALLET_MNEMONIC!.split(' '));
+export async function run(provider: NetworkProvider) {
+    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
 
-    const address_HLW = Address.parse(process.env.HLWCONTRACT_ADDRESS!);
-    if (!(await provider.isContractDeployed(address_HLW))) {
-        ui.write(`Error: HLW Contract at address ${address_HLW} is not deployed!`);
-        return;
-    }
-    const address_jetton = Address.parse(process.env.JETTON_ADDRESS!);
+    const { keyPair, HighloadWallet } = await getHLW();
 
-    if (!(await provider.isContractDeployed(address_HLW))) {
-        ui.write(`Error: HLW Contract at address ${address_HLW} is not deployed!`);
-        return;
-    }
+    const highloadWalletV3 = provider.open(HighloadWallet);
 
-    highloadWalletV3 = provider.open(
-        HighloadWalletV3.createFromAddress(address_HLW)
-    );
+    const bankJettonMaster = provider.open(await BJ.BankJetton.fromInit(highloadWalletV3.address, buildOnchainMetadata(BNKjettonParams)));
+    const highloadWalletV3BankJettonWallet = await bankJettonMaster.getGetWalletAddress(highloadWalletV3.address);
+    const highloadWalletV3BankJettonContract = provider.open(BJW.BankJettonWallet.fromAddress(highloadWalletV3BankJettonWallet));
 
-    let bitnumber = 0n
-    let shift = 0n
+    const batchShift = 250;
 
-    try {
-        let outMsgs: OutActionSendMsg[];
-        const recipients = [
-            {address: 'UQCjaozbXUT-iIqMjBfuRC0OoJUZhxwnzH8UiLPtdso5Ecyu', amount: 3},
-            {address: 'UQBVZhqyseLY0maGkoXwhUOOO7-4BCfDQ8UQf2YcBEbe3CoK', amount: 5}
-        ]
+    const recipients = getRecipients('.csv');
 
-        const batchShift = 250
+    for (let i = 0; i < recipients.length / batchShift; ++i) {
+        const outMsgsBanks: OutActionSendMsg[] = [];
+        const current_recipients = recipients.slice(batchShift * i, batchShift * (i + 1));
 
-        for (let i = 0; i < recipients.length / batchShift; ++i) {
-            outMsgs = []
-
-            for (let {address, amount} of recipients.slice(batchShift * i, (batchShift + 1) * i)) {
-                outMsgs.push({
-                    type: 'sendMsg',
-                    mode: SendMode.IGNORE_ERRORS,
-                    outMsg: internal_relaxed({
-                        to: address_jetton,
-                        value: toNano('0.05'),
-                        body:  beginCell()
-                            .store(storeJettonTransfer(getJettonTransferBuilder(Address.parse(address), amount)))
+        for (let { address, amount } of current_recipients) {
+            outMsgsBanks.push({
+                type: 'sendMsg',
+                mode: SendMode.IGNORE_ERRORS,
+                outMsg: internal_relaxed({
+                    to: highloadWalletV3BankJettonContract.address,
+                    value: toNano('0.07'),
+                    body:
+                        beginCell()
+                            .store(BJ.storeJettonTransfer(getJettonTransferBuilder(address, amount, highloadWalletV3.address, false)))
                             .endCell()
-                    }),
                 })
-            }
-
-            if (bitnumber > maxQueryId) {
-                ++shift
-                bitnumber = 0n
-            }
-            const queryId = HighloadQueryId.fromShiftAndBitNumber(shift, bitnumber)
-            const createdAt = Math.floor(Date.now() / 1000 - 100)
-            await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId, createdAt)
-
-            ++bitnumber
+            });
         }
-    } catch (err) {
-        console.error(err);
+
+        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsBanks, queryId);
     }
 }

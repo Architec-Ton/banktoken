@@ -1,4 +1,4 @@
-import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, SendMode, toNano } from '@ton/core';
+import { Address, beginCell, Dictionary, DictionaryKey, DictionaryValue, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { NetworkProvider } from '@ton/blueprint';
 
@@ -20,7 +20,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const requireWeight = 3n;
     const BNKMasterStr = 'kQBuFWV6jW_9F69A3qjn5rpqfG4eIMBJs9GFSrZU7d33EmIG'; 
     const addressToStr = '0QAqfB6nE0M8DoiTizqHUSihnZeyKhupgKxikccm5mJS0HVe'
-    const multisigContractStr = 'kQCILmBSe0EXI6dKyuvBFlmviCURyvb4_4iT4TCGzMNbu1Rf' //testnet multisig
+    const multisigContractStr = 'kQCILmBSe0EXI6dKyuvBFlmviCURyvb4_4iT4TCGzMNbu1Rf'
     let key: DictionaryKey<Address>;
     let value: DictionaryValue<bigint>;
     const members = Dictionary.empty<Address, bigint>(key, value);
@@ -36,7 +36,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     // const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
     const multisig = provider.open(MS.Multisig.fromAddress(Address.parse('kQCPlCLYQ6RMvituIVK3JTzXBZjshdkDvjmsv9QEmXC1eYd4')));
 
-    const bankJettonContract = provider.open(await BJ.BankJetton.fromAddress(Address.parse(BNKMasterStr)));
+    const bankJettonContract = provider.open(BJ.BankJetton.fromAddress(Address.parse(BNKMasterStr)));
     const multisigJettonWalletBNK = await bankJettonContract.getGetWalletAddress(multisig.address);
     const multisigJettonContractBNK  = provider.open(BJW.BankJettonWallet.fromAddress(multisigJettonWalletBNK))
 
@@ -65,30 +65,30 @@ export async function run(provider: NetworkProvider, args: string[]) {
             forward_ton_amount: 0n,
             forward_payload: beginCell().endCell()
         }
-        // const arcJettonTransfer: AJW.JettonTransfer = {
-        //     $$type: 'JettonTransfer',
-        //     query_id: 0n,
-        //     destination: destinationAddress,
-        //     response_destination: destinationAddress,
-        //     amount: 0n,
-        //     custom_payload: beginCell().endCell(),
-        //     forward_ton_amount: 0n,
-        //     forward_payload: beginCell().endCell()
-        // }
+        const arcJettonTransfer: AJW.JettonTransfer = {
+            $$type: 'JettonTransfer',
+            query_id: 0n,
+            destination: destinationAddress,
+            response_destination: destinationAddress,
+            amount: 0n,
+            custom_payload: beginCell().endCell(),
+            forward_ton_amount: 0n,
+            forward_payload: beginCell().endCell()
+        }
         const changeOwner: CS.SetNewOwner = {
             $$type: 'SetNewOwner',
             new_owner: Address.parse('0QCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xeroso3_')
         }
-        // const setJettonWallet: CS.SetJettonWallet = {
-        //     $$type: 'SetJettonWallet',
-        //     jetton_wallet: Address.parse('')
-        // }
+        const setJettonWallet: CS.SetJettonWallet = {
+            $$type: 'SetJettonWallet',
+            jetton_wallet: Address.parse('')
+        }
 
         const bodySimple = beginCell().endCell()
         const bodyBankJettonTransfer = beginCell().store(BJW.storeJettonTransfer(bankJettonTransfer)).endCell()
-        // const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
+        const bodyArcJettonTransfer = beginCell().store(AJW.storeJettonTransfer(arcJettonTransfer)).endCell()
         const bodyChangeOwner = beginCell().store(CS.storeSetNewOwner(changeOwner)).endCell() // используется для ARC тоже
-        // const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet(setJettonWallet)).endCell()
+        const bodySetCrowdSaleWallet = beginCell().store(CS.storeSetJettonWallet(setJettonWallet)).endCell()
 
         const tonAmount = 0.1
 

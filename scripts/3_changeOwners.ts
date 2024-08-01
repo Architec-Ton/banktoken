@@ -1,25 +1,32 @@
 import { beginCell, OutActionSendMsg, SendMode, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { NetworkProvider } from '@ton/blueprint';
+import { ARCjettonParams, BNKjettonParams } from './imports/const';
 
 import { HLWSend } from '../utils/HLWv3-helpers';
 import { HighloadQueryId } from '../wrappers/HighloadQueryId';
 import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
-import { getHLW } from './highloadWallet';
-import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
-import * as BJ from '../build/BankJetton/tact_BankJetton';
 import { buildOnchainMetadata } from '../utils/jetton-helpers';
-import { ARCjettonParams, BNKjettonParams } from './imports/const';
+
+import * as MS from '../build/Multisig/tact_Multisig';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as AJ from '../build/ArcJetton/tact_ArcJetton';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
+import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
+import { getMultisig } from './multisig';
+import { getHLW } from './highloadWallet';
 
 
 export async function run(provider: NetworkProvider) {
+    const totalBanksOffset = 0n;
+
     let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
     const { keyPair, HighloadWallet } = await getHLW();
 
     const highloadWalletV3 = provider.open(HighloadWallet);
-    console.log(highloadWalletV3.address);
+
+    const members = getMultisig();
+    const multisig = provider.open(await MS.Multisig.fromInit(members, 3n, 3n));
 
     const bankJettonMaster = provider.open(await BJ.BankJetton.fromInit(highloadWalletV3.address, buildOnchainMetadata(BNKjettonParams)));
 
@@ -30,20 +37,10 @@ export async function run(provider: NetworkProvider) {
     const highloadWalletV3BankJettonWallet = await bankJettonMaster.getGetWalletAddress(highloadWalletV3.address);
     const highloadWalletV3BankJettonContract = provider.open(BJW.BankJettonWallet.fromAddress(highloadWalletV3BankJettonWallet));
 
-    // const returnCoins: OutActionSendMsg = {
-    //     type: 'sendMsg',
-    //     mode: SendMode.CARRY_ALL_REMAINING_BALANCE,
-    //     outMsg: internal_relaxed({
-    //         to: Address.parse('0QCj0zI66mVKC_kkRZ-63e7uR9tcpHWxS-C-W-P_Xeroso3_'),
-    //         value: 0n,
-    //         body: beginCell().endCell()
-    //     })
-    // };
-
     const bankTransferToCrowdSale: BJW.JettonTransfer = {
         $$type: 'JettonTransfer',
         query_id: 0n,
-        amount: 5n,
+        amount: 3_000_000n - totalBanksOffset,
         destination: banksCrowdSaleV3.address,
         response_destination: banksCrowdSaleV3.address,
         custom_payload: beginCell().endCell(),
@@ -58,6 +55,60 @@ export async function run(provider: NetworkProvider) {
             to: highloadWalletV3BankJettonContract.address,
             value: toNano('0.07'),
             body: beginCell().store(BJW.storeJettonTransfer(bankTransferToCrowdSale)).endCell()
+        })
+    };
+
+    let outMsgs = [bankTransferToCrowdsaleMsg];
+    queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
+
+    const changeBankOwnerMsg: OutActionSendMsg = {
+        type: 'sendMsg',
+        mode: SendMode.IGNORE_ERRORS,
+        outMsg: internal_relaxed({
+            to: bankJettonMaster.address,
+            value: toNano('0.05'),
+            body:
+                beginCell()
+                    .store(BJ.storeChangeOwner({
+                        $$type: 'ChangeOwner',
+                        queryId: 0n,
+                        newOwner: multisig.address
+                    }))
+                    .endCell()
+        })
+    };
+
+    const changeCrowdSaleOwnerMsg: OutActionSendMsg = {
+        type: 'sendMsg',
+        mode: SendMode.IGNORE_ERRORS,
+        outMsg: internal_relaxed({
+            to: banksCrowdSaleV3.address,
+            value: toNano('0.05'),
+            body:
+                beginCell()
+                    .store(CS.storeChangeOwner({
+                        $$type: 'ChangeOwner',
+                        queryId: 0n,
+                        newOwner: multisig.address
+                    }))
+                    .endCell()
+        })
+    };
+
+    const changeArcOwnerMsg: OutActionSendMsg = {
+        type: 'sendMsg',
+        mode: SendMode.IGNORE_ERRORS,
+        outMsg: internal_relaxed({
+            to: arcJettonMaster.address,
+            value: toNano('0.05'),
+            body:
+                beginCell()
+                    .store(AJ.storeChangeOwner({
+                        $$type: 'ChangeOwner',
+                        queryId: 0n,
+                        newOwner: multisig.address
+                    }))
+                    .endCell()
         })
     };
 
@@ -78,23 +129,6 @@ export async function run(provider: NetworkProvider) {
         })
     };
 
-    const addJettonAddressMsg: OutActionSendMsg = {
-        type: 'sendMsg',
-        mode: SendMode.IGNORE_ERRORS,
-        outMsg: internal_relaxed({
-            to: arcJettonMaster.address,
-            value: toNano('0.05'),
-            body:
-                beginCell()
-                    .store(BJ.storeAddingJettonAddress({
-                        $$type: 'AddingJettonAddress',
-                        this_contract_jettonWallet: arcJettonMaster.address
-                    }))
-                    .endCell()
-        })
-    };
-
-
-    let outMsgs = [bankTransferToCrowdsaleMsg, changeArcMinterMsg, addJettonAddressMsg];
-    queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
+    outMsgs = [changeArcMinterMsg, changeCrowdSaleOwnerMsg, changeBankOwnerMsg, changeArcOwnerMsg];
+    await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 }

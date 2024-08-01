@@ -1,16 +1,17 @@
 import {buildOnchainMetadata, getJettonTransferBuilder} from "../utils/jetton-helpers";
 import {DEFAULT_TIMEOUT, SUBWALLET_ID, maxQueryId} from "./imports/const";
-import {getSecureRandomBytes, KeyPair, keyPairFromSeed} from "ton-crypto";
 import {HighloadWalletV3} from "../wrappers/HighloadWalletV3";
 import {HighloadQueryId} from "../wrappers/HighloadQueryId";
+
 import {ArcJettonWallet} from "../build/ArcJetton/tact_ArcJettonWallet";
 import {ArcJetton, JettonTransfer, storeJettonTransfer} from '../build/ArcJetton/tact_ArcJetton';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 
 import {beginCell, Cell, OutActionSendMsg, SendMode, toNano, internal as internal_relaxed} from '@ton/core';
+import {getSecureRandomBytes, KeyPair, keyPairFromSeed} from "ton-crypto";
 import {compile} from "@ton/blueprint";
 import {Blockchain, SandboxContract, TreasuryContract} from '@ton/sandbox';
 import {randomAddress} from "@ton/test-utils";
-import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
 
 import {randomInt} from "node:crypto";
 
@@ -90,15 +91,6 @@ describe('ARC Airdrop test', () => {
                 queryId: 0n,
             },
         );
-
-        // expect(deployResultBNK.transactions).toHaveTransaction({
-        //     from: owner.address,
-        //     to: bankJetton.address,
-        //     deploy: true,
-        //     success: true,
-        // });
-
-
 
         ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address,  buildOnchainMetadata(jettonParams)));
         const deployJettonResult = await ARCJetton.send(

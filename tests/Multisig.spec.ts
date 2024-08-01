@@ -1,7 +1,3 @@
-import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Address, beginCell, Cell, Dictionary, DictionaryKey, DictionaryValue, toNano } from '@ton/core';
-import '@ton/test-utils';
-import { randomAddress } from '@ton/test-utils';
 import { Multisig, Request } from '../build/Multisig/tact_Multisig';
 import { MultisigSigner } from '../build/Multisig/tact_MultisigSigner';
 import { BankJetton, JettonTransfer, storeJettonTransfer } from '../build/BankJetton/tact_BankJetton';
@@ -9,6 +5,12 @@ import { BankJettonWallet } from '../build/BankJetton/tact_BankJettonWallet';
 import { ArcJetton, ChangeMinter, ChangeOwner, Mint, storeChangeOwner, storeMint } from '../build/ArcJetton/tact_ArcJetton';
 import { ArcJettonWallet } from '../build/ArcJetton/tact_ArcJettonWallet';
 import { storeChangeMinter } from '../wrappers/BankStaking';
+
+import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Address, beginCell, Cell, Dictionary, DictionaryKey, DictionaryValue, toNano } from '@ton/core';
+import '@ton/test-utils';
+import { randomAddress } from '@ton/test-utils';
+
 
 
 describe('Multisig', () => {

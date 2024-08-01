@@ -31,10 +31,7 @@ export function getRecipients(filename: string, amount=0n) {
                 address: Address.parse(columns[0]),
                 amount: amount ? amount : BigInt(columns[1])
             });
-            }
-        else {
-            continue;
-        };
+        }
     }
 
     return recipients
