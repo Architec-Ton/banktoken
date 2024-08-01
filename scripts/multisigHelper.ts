@@ -13,7 +13,7 @@ import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
 
 require('dotenv').config()
 
-export async function run(provider: NetworkProvider, args: string[]) {
+export async function run(provider: NetworkProvider) {
     const ui = provider.ui();
 
     const totalWeight = 3n;

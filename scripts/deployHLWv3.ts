@@ -7,7 +7,7 @@ import { compile, NetworkProvider } from '@ton/blueprint';
 
 import 'dotenv/config';
 
-export async function run(provider: NetworkProvider, args: string[]) {
+export async function run(provider: NetworkProvider) {
     const keyPair = await mnemonicToPrivateKey(process.env.WALLET_MNEMONIC!.split(' '));
     const code = await compile('HighloadWalletV3');
 

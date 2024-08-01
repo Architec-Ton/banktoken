@@ -4,7 +4,7 @@ import * as BJ from '../build/BankJetton/tact_BankJetton';
 import { Address, toNano } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
 
-export async function run(provider: NetworkProvider, args: string[]) {
+export async function run(provider: NetworkProvider) {
     const ui = provider.ui();
 
     const bankJettonMasterAddress = Address.parse('')
