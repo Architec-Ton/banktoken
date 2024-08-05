@@ -10,6 +10,7 @@ import * as BJ from '../build/BankJetton/tact_BankJetton';
 import * as BJW from '../build/BankJetton/tact_BankJettonWallet';
 import * as AJW from '../build/ArcJetton/tact_ArcJettonWallet';
 import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
+import { getMultisig } from './multisig';
 
 require('dotenv').config()
 
@@ -21,20 +22,10 @@ export async function run(provider: NetworkProvider) {
     const BNKMasterStr = 'kQBuFWV6jW_9F69A3qjn5rpqfG4eIMBJs9GFSrZU7d33EmIG'; 
     const addressToStr = '0QAqfB6nE0M8DoiTizqHUSihnZeyKhupgKxikccm5mJS0HVe'
     const multisigContractStr = 'kQCILmBSe0EXI6dKyuvBFlmviCURyvb4_4iT4TCGzMNbu1Rf'
-    let key: DictionaryKey<Address>;
-    let value: DictionaryValue<bigint>;
-    const members = Dictionary.empty<Address, bigint>(key, value);
+    const members = getMultisig()
 
-    const owner1Address = Address.parse(process.env.OWNER_1_ADDRESS!);
-    const owner2Address = Address.parse(process.env.OWNER_2_ADDRESS!);
-    const owner3Address = Address.parse(process.env.OWNER_3_ADDRESS!);
-
-    members.set(owner1Address, 1n);
-    members.set(owner2Address, 1n);
-    members.set(owner3Address, 1n);
-
-    // const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
-    const multisig = provider.open(MS.Multisig.fromAddress(Address.parse('kQCPlCLYQ6RMvituIVK3JTzXBZjshdkDvjmsv9QEmXC1eYd4')));
+    const multisig = provider.open(await MS.Multisig.fromInit(members, totalWeight, requireWeight));
+    // const multisig = provider.open(MS.Multisig.fromAddress(Address.parse('kQCPlCLYQ6RMvituIVK3JTzXBZjshdkDvjmsv9QEmXC1eYd4')));
 
     const bankJettonContract = provider.open(BJ.BankJetton.fromAddress(Address.parse(BNKMasterStr)));
     const multisigJettonWalletBNK = await bankJettonContract.getGetWalletAddress(multisig.address);
