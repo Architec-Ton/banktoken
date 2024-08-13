@@ -53,6 +53,7 @@ export async function HLWAirdrop(highloadWalletV3: OpenedContract<HighloadWallet
         const current_recipients = recipients.slice(batchShift * i, batchShift * (i + 1));
 
         for (let { address, amount } of current_recipients) {
+            console.log(address)
             outMsgsBanks.push({
                 type: 'sendMsg',
                 mode: SendMode.IGNORE_ERRORS,
@@ -104,6 +105,6 @@ export async function HLWSend(highloadWalletV3: OpenedContract<HighloadWalletV3>
     }
     queryId = queryId.getNext();
     console.log('queryId.getNext: ', queryId)
-
+    await sleep(3000);
     return queryId
 }

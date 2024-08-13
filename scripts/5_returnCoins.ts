@@ -15,7 +15,7 @@ import * as CS from '../build/BanksCrowdSaleV3/tact_BanksCrowdSaleV3';
 
 
 export async function run(provider: NetworkProvider) {
-    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
+    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 64n);
     const { keyPair, HighloadWallet } = await getHLW();
 
     const highloadWalletV3 = provider.open(HighloadWallet);
@@ -30,6 +30,9 @@ export async function run(provider: NetworkProvider) {
     const highloadWalletV3BankJettonWallet = await bankJettonMaster.getGetWalletAddress(highloadWalletV3.address);
     const highloadWalletV3BankJettonContract = provider.open(BJW.BankJettonWallet.fromAddress(highloadWalletV3BankJettonWallet));
 
+    const banksCrowdSaleV3Wallet = await bankJettonMaster.getGetWalletAddress(banksCrowdSaleV3.address);
+    const banksCrowdSaleV3JettonContract = provider.open(BJW.BankJettonWallet.fromAddress(banksCrowdSaleV3Wallet));
+
     // const returnCoins: OutActionSendMsg = {
     //     type: 'sendMsg',
     //     mode: SendMode.CARRY_ALL_REMAINING_BALANCE,
@@ -43,7 +46,7 @@ export async function run(provider: NetworkProvider) {
     const bankTransferToCrowdSale: BJW.JettonTransfer = {
         $$type: 'JettonTransfer',
         query_id: 0n,
-        amount: 5n,
+        amount: 64223n,
         destination: banksCrowdSaleV3.address,
         response_destination: banksCrowdSaleV3.address,
         custom_payload: beginCell().endCell(),
@@ -61,40 +64,68 @@ export async function run(provider: NetworkProvider) {
         })
     };
 
-    const changeArcMinterMsg: OutActionSendMsg = {
+    const setBankOffset: OutActionSendMsg = {
         type: 'sendMsg',
         mode: SendMode.IGNORE_ERRORS,
         outMsg: internal_relaxed({
-            to: arcJettonMaster.address,
+            to: banksCrowdSaleV3.address,
             value: toNano('0.05'),
-            body:
-                beginCell()
-                    .store(AJ.storeChangeMinter({
-                        $$type: 'ChangeMinter',
-                        newMinter: bankJettonMaster.address,
-                        isMinter: true
-                    }))
-                    .endCell()
-        })
-    };
-
-    const addJettonAddressMsg: OutActionSendMsg = {
-        type: 'sendMsg',
-        mode: SendMode.IGNORE_ERRORS,
-        outMsg: internal_relaxed({
-            to: arcJettonMaster.address,
-            value: toNano('0.05'),
-            body:
-                beginCell()
-                    .store(BJ.storeAddingJettonAddress({
-                        $$type: 'AddingJettonAddress',
-                        this_contract_jettonWallet: arcJettonMaster.address
-                    }))
-                    .endCell()
+            init: banksCrowdSaleV3.init,
+            body: beginCell().store(CS.storeSetBankOffset({
+                $$type: 'SetBankOffset',
+                offset: 435777n
+            })).endCell()
         })
     };
 
 
-    let outMsgs = [bankTransferToCrowdsaleMsg, changeArcMinterMsg, addJettonAddressMsg];
+    // const changeArcMinterMsg: OutActionSendMsg = {
+    //     type: 'sendMsg',
+    //     mode: SendMode.IGNORE_ERRORS,
+    //     outMsg: internal_relaxed({
+    //         to: arcJettonMaster.address,
+    //         value: toNano('0.05'),
+    //         body:
+    //             beginCell()
+    //                 .store(AJ.storeChangeMinter({
+    //                     $$type: 'ChangeMinter',
+    //                     newMinter: bankJettonMaster.address,
+    //                     isMinter: true
+    //                 }))
+    //                 .endCell()
+    //     })
+    // };
+
+    // const addJettonAddressMsg: OutActionSendMsg = {
+    //     type: 'sendMsg',
+    //     mode: SendMode.IGNORE_ERRORS,
+    //     outMsg: internal_relaxed({
+    //         to: bankJettonMaster.address,
+    //         value: toNano('0.05'),
+    //         body:
+    //             beginCell()
+    //                 .store(BJ.storeAddingJettonAddress({
+    //                     $$type: 'AddingJettonAddress',
+    //                     this_contract_jettonWallet: arcJettonMaster.address
+    //                 }))
+    //                 .endCell()
+    //     })
+    // };
+
+    // const setBanksCrowdSaleV3JettonWallet: OutActionSendMsg = {
+    //     type: 'sendMsg',
+    //     mode: SendMode.IGNORE_ERRORS,
+    //     outMsg: internal_relaxed({
+    //         to: banksCrowdSaleV3.address,
+    //         value: toNano('0.05'),
+    //         init: banksCrowdSaleV3.init,
+    //         body: beginCell().store(CS.storeSetJettonWallet({
+    //             $$type: 'SetJettonWallet',
+    //             jetton_wallet: banksCrowdSaleV3JettonContract.address
+    //         })).endCell()
+    //     })
+    // };
+
+    let outMsgs = [bankTransferToCrowdsaleMsg, setBankOffset /* , changeArcMinterMsg, addJettonAddressMsg  setBanksCrowdSaleV3JettonWallet*/];
     queryId = await HLWSend(highloadWalletV3, keyPair, outMsgs, queryId);
 }
