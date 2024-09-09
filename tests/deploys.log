@@ -1,0 +1,25 @@
+Contract deployed at address EQBjd6gv2R45GwT73KsrEEfiYum7HLCfzo_IypV4cDxVSYw6
+You can view it at https://tonscan.org/address/EQBjd6gv2R45GwT73KsrEEfiYum7HLCfzo_IypV4cDxVSYw6
+Contract deployed at address EQBXRdZTk5P49mL0nOYfDR1VR33N3sPUgB7PNQMaj6DhxOJH
+You can view it at https://tonscan.org/address/EQBXRdZTk5P49mL0nOYfDR1VR33N3sPUgB7PNQMaj6DhxOJH
+Contract deployed at address EQAj1qW6WZTd7sd33Uk48O3TqxNPMjYrgwRHAcBM8RcQCQAD
+You can view it at https://tonscan.org/address/EQAj1qW6WZTd7sd33Uk48O3TqxNPMjYrgwRHAcBM8RcQCQAD
+Contract deployed at address EQDe0iw9l9-pyNmoS5eKnCc0dOTvKeW99CHw1P2mPe119nsZ
+You can view it at https://tonscan.org/address/EQDe0iw9l9-pyNmoS5eKnCc0dOTvKeW99CHw1P2mPe119nsZ
+
+
+console.log(
+        highloadWalletV3.address,
+        multisig.address,
+        bankJettonMaster.address,
+        arcJettonMaster.address,
+        banksCrowdSaleV3.address
+    );
+EQBGwiN9DciiqtZ3YX53yUdawZxdwcZfztP_tYbqU2wZz-ew 
+EQBjd6gv2R45GwT73KsrEEfiYum7HLCfzo_IypV4cDxVSYw6
+EQAj1qW6WZTd7sd33Uk48O3TqxNPMjYrgwRHAcBM8RcQCQAD
+EQBXRdZTk5P49mL0nOYfDR1VR33N3sPUgB7PNQMaj6DhxOJH 
+EQDe0iw9l9-pyNmoS5eKnCc0dOTvKeW99CHw1P2mPe119nsZ
+
+queryId.getNext:  HighloadQueryId { shift: 0n, bitnumber: 117n } (last) 
+npx blueprint run --mnemonic 2_Drop
