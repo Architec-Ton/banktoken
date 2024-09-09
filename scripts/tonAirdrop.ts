@@ -12,7 +12,7 @@ import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 import { NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
+    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 121n);
 
     const { keyPair, HighloadWallet } = await getHLW();
 
@@ -24,7 +24,7 @@ export async function run(provider: NetworkProvider) {
 
     const batchShift = 250;
 
-    const recipients = getRecipients('.csv');
+    const recipients = getRecipients('20_IVAN0909TON.CSV');
 
     for (let i = 0; i < recipients.length / batchShift; ++i) {
         const outMsgsArcs: OutActionSendMsg[] = [];
@@ -35,11 +35,9 @@ export async function run(provider: NetworkProvider) {
                 type: 'sendMsg',
                 mode: SendMode.IGNORE_ERRORS,
                 outMsg: internal_relaxed({
-                    to: highloadWalletV3ArcJettonContract.address,
-                    value: toNano('0.07'),
-                    body: beginCell()
-                            .store(AJ.storeJettonTransfer(getJettonTransferBuilder(address, toNano(amount), highloadWalletV3.address, false)))
-                            .endCell()
+                    to: address,
+                    value: toNano(amount),
+                    body: beginCell().endCell()
                 })
             });
         }
