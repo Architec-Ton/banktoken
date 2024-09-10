@@ -12,7 +12,7 @@ import { internal as internal_relaxed } from '@ton/core/dist/types/_helpers';
 import { NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 121n);
+    let queryId = HighloadQueryId.fromShiftAndBitNumber(0n, 0n);
 
     const { keyPair, HighloadWallet } = await getHLW();
 
@@ -27,21 +27,22 @@ export async function run(provider: NetworkProvider) {
     const recipients = getRecipients('20_IVAN0909TON.CSV');
 
     for (let i = 0; i < recipients.length / batchShift; ++i) {
-        const outMsgsArcs: OutActionSendMsg[] = [];
+        const outMsgsTons: OutActionSendMsg[] = [];
         const current_recipients = recipients.slice(batchShift * i, batchShift * (i + 1));
 
         for (let { address, amount } of current_recipients) {
-            outMsgsArcs.push({
+            outMsgsTons.push({
                 type: 'sendMsg',
-                mode: SendMode.IGNORE_ERRORS,
+                mode: SendMode.IGNORE_ERRORS,                
                 outMsg: internal_relaxed({
                     to: address,
+                    bounce: false,
                     value: toNano(amount),
                     body: beginCell().endCell()
                 })
             });
         }
 
-        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId);
+        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsTons, queryId);
     }
 }
