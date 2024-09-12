@@ -116,6 +116,7 @@ message UpdateNext {
 
 message ChangeMinter {
     newMinter: Address;
+    isMinter: Bool;
 }
 
 

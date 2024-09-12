@@ -76,13 +76,31 @@ contract StakeStorage with  Storage {
     receive(_msg: Add) {
         let ctx: Context = context(); // Check sender
         require(ctx.sender == self.factory, "Invalid sender");
-        require(self.empty, "Already filled");
-        self.amount += _msg.amount;
-        self.updatetime = now();
-        self.previousCell= _msg.previousCell;
-        self.nextCell = _msg.nextCell;
-        self.stakerWallet = _msg.stakerWallet;
-        self.empty = false;        
+        if (self.empty){  
+            self.amount = _msg.amount;
+            self.updatetime = now();
+            self.previousCell= _msg.previousCell;
+            self.nextCell = _msg.nextCell;
+            self.stakerWallet = _msg.stakerWallet;
+            self.empty = false;
+        }        
+        else { //"Already filled, returnBNK );
+            send(SendParameters{
+                to: _msg.stakerWallet,
+                value: 0,
+                mode: (SendIgnoreErrors  + SendRemainingBalance), //?
+                bounce: true, 
+                body: JettonTransfer{
+                    query_id: 0,
+                    amount: _msg.amount,
+                    destination:  self.owner, 
+                    response_destination:  self.owner,
+                    custom_payload: null,
+                    forward_ton_amount:0,
+                    forward_payload: emptySlice()
+                }.toCell()
+            });
+        }
     }
 
     receive (_msg: GetWeighted) {
@@ -90,9 +108,10 @@ contract StakeStorage with  Storage {
         let ctx: Context = context();
         require (ctx.sender == self.factory, "wrong call" );
         require(_msg.applied_user_address == self.owner, "Not owner");
+        require (self.amount > 0, "No staking amount");
         let mint: Mint = Mint{
-        to: _msg.applied_user_address,
-        amount: self.score_function()
+            to: _msg.applied_user_address,
+            amount: self.score_function()
         };
         send(SendParameters{
         to: ctx.sender,
@@ -117,7 +136,7 @@ contract StakeStorage with  Storage {
         };
         send(SendParameters{
             to: ctx.sender,
-            value: ton("1"),
+            value: ton("0.1"),
             mode: ( SendIgnoreErrors ),
             bounce: true,
             body:mint.toCell()
@@ -126,7 +145,7 @@ contract StakeStorage with  Storage {
         send(SendParameters{
             to: self.stakerWallet,
             value: 0,
-            mode: (SendRemainingValue  + SendIgnoreErrors  ),
+            mode: (SendIgnoreErrors  + SendRemainingBalance), //?
             bounce: true, // 0x7362d09c - notify new owner
             body: JettonTransfer{
                 query_id: 0,
@@ -141,8 +160,7 @@ contract StakeStorage with  Storage {
 
         self.amount= 0;
         self.updatetime = now();
-        self.empty = false;        
-
+        self.empty = true;
     }
     get fun amountTime(_for: Address): AmountTime {
         return   AmountTime{for: _for,
@@ -169,8 +187,12 @@ contract StakeStorage with  Storage {
         else if (self.amount < 10_000) {parameter = ton("2.5");}
         else {parameter = ton("30");
         }
-        return (/* self.amount *  */self.durationTime() * parameter / 86400);  // 60sec*60min*24hour  )
-
+        if (self.amount == 0) {
+            return 0;
+        }
+        else {
+            return (/* self.amount *  */self.durationTime() * parameter / 86400);  // 60sec*60min*24hour  )
+        }
     }
 
     fun durationTime(): Int {

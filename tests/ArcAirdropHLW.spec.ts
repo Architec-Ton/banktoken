@@ -1,20 +1,26 @@
 import {buildOnchainMetadata, getJettonTransferBuilder} from "../utils/jetton-helpers";
-import {HLWSend} from "../utils/HLWv3-helpers";
 import {DEFAULT_TIMEOUT, SUBWALLET_ID, maxQueryId} from "./imports/const";
-import {getSecureRandomBytes, KeyPair, keyPairFromSeed} from "ton-crypto";
 import {HighloadWalletV3} from "../wrappers/HighloadWalletV3";
 import {HighloadQueryId} from "../wrappers/HighloadQueryId";
+
 import {ArcJettonWallet} from "../build/ArcJetton/tact_ArcJettonWallet";
 import {ArcJetton, JettonTransfer, storeJettonTransfer} from '../build/ArcJetton/tact_ArcJetton';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 
 import {beginCell, Cell, OutActionSendMsg, SendMode, toNano, internal as internal_relaxed} from '@ton/core';
+import {getSecureRandomBytes, KeyPair, keyPairFromSeed} from "ton-crypto";
 import {compile} from "@ton/blueprint";
 import {Blockchain, SandboxContract, TreasuryContract} from '@ton/sandbox';
 import {randomAddress} from "@ton/test-utils";
-import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
 
 import {randomInt} from "node:crypto";
 
+
+async function HLWSend(highloadWalletV3: any, keyPair: KeyPair,
+                       outMsgs: OutActionSendMsg[], queryId: HighloadQueryId, createdAt: number) {
+
+    return await highloadWalletV3.sendBatch(keyPair.secretKey, outMsgs, SUBWALLET_ID, queryId, DEFAULT_TIMEOUT, createdAt);
+}
 
 describe('ARC Airdrop test', () => {
     let owner: SandboxContract<TreasuryContract>;
@@ -32,14 +38,16 @@ describe('ARC Airdrop test', () => {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/ARCjetton.png"
+        image_data: "https://www.com/ARCjetton.png",
+        decimals: '9'
     };
 
     const BNKjettonParams = {
         name: 'BNK jetton',
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
-        image: 'https://www.com/BNKjetton.json',
+        image_data: 'https://www.com/BNKjetton.json',
+        decimals: '0'
     };
 
     beforeEach(async () => {
@@ -71,7 +79,7 @@ describe('ARC Airdrop test', () => {
 
         owner = await blockchain.treasury('owner', {balance: toNano(10000)});
         bankJetton = blockchain.openContract(
-            await BJ.BankJetton.fromInit(owner.address, buildOnchainMetadata(BNKjettonParams)),
+            await BJ.BankJetton.fromInit(owner.address, beginCell().endCell()),
         );
         const deployResultBNK = await bankJetton.send(
             owner.getSender(),
@@ -83,15 +91,6 @@ describe('ARC Airdrop test', () => {
                 queryId: 0n,
             },
         );
-
-        // expect(deployResultBNK.transactions).toHaveTransaction({
-        //     from: owner.address,
-        //     to: bankJetton.address,
-        //     deploy: true,
-        //     success: true,
-        // });
-
-
 
         ARCJetton = blockchain.openContract(await ArcJetton.fromInit(owner.address,  buildOnchainMetadata(jettonParams)));
         const deployJettonResult = await ARCJetton.send(

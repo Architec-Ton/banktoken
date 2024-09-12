@@ -46,14 +46,15 @@ const toKey = (key: string) => {
 export function buildOnchainMetadata(data: {
     name: string;
     description: string;
-    image: string;
+    image_data: string;
+    decimals: string;
 }): Cell {
     let dict = Dictionary.empty(
         Dictionary.Keys.BigUint(256),
         Dictionary.Values.Cell()
     );
     Object.entries(data).forEach(([key, value]) => {
-        dict.set(toKey(key), makeSnakeCell(Buffer.from(value, "utf8")));
+        dict.set(toKey(key), makeSnakeCell(Buffer.from(value, 'utf-8')));
     });
 
     return beginCell()
@@ -62,13 +63,13 @@ export function buildOnchainMetadata(data: {
         .endCell();
 }
 
-export function getJettonTransferBuilder(address: Address, amount: bigint | number): JettonTransfer {
+export function getJettonTransferBuilder(address: Address, amount: bigint | number, response_address: Address=address, decimal: boolean = true): JettonTransfer {
     return {
         $$type: 'JettonTransfer',
         query_id: 0n,
-        amount: toNano(amount),
+        amount: decimal ? toNano(amount) : BigInt(amount),
         destination: address,
-        response_destination: address,
+        response_destination: response_address,
         custom_payload: beginCell().endCell(),
         forward_ton_amount: 0n,
         forward_payload: beginCell().endCell(),

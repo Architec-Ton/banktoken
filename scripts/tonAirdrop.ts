@@ -24,26 +24,25 @@ export async function run(provider: NetworkProvider) {
 
     const batchShift = 250;
 
-    const recipients = getRecipients('.csv');
+    const recipients = getRecipients('20_IVAN0909TON.CSV');
 
     for (let i = 0; i < recipients.length / batchShift; ++i) {
-        const outMsgsArcs: OutActionSendMsg[] = [];
+        const outMsgsTons: OutActionSendMsg[] = [];
         const current_recipients = recipients.slice(batchShift * i, batchShift * (i + 1));
 
         for (let { address, amount } of current_recipients) {
-            outMsgsArcs.push({
+            outMsgsTons.push({
                 type: 'sendMsg',
-                mode: SendMode.IGNORE_ERRORS,
+                mode: SendMode.IGNORE_ERRORS,                
                 outMsg: internal_relaxed({
-                    to: highloadWalletV3ArcJettonContract.address,
-                    value: toNano('0.07'),
-                    body: beginCell()
-                            .store(AJ.storeJettonTransfer(getJettonTransferBuilder(address, toNano(amount), highloadWalletV3.address, false)))
-                            .endCell()
+                    to: address,
+                    bounce: false,
+                    value: toNano(amount),
+                    body: beginCell().endCell()
                 })
             });
         }
 
-        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsArcs, queryId);
+        queryId = await HLWSend(highloadWalletV3, keyPair, outMsgsTons, queryId);
     }
 }

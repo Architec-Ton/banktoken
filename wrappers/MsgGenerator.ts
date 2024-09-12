@@ -1,4 +1,4 @@
-import { Cell, CommonMessageInfoExternalIn, CommonMessageInfoExternalOut, ExternalAddress, Message, MessageRelaxed, StateInit, beginCell, external, storeMessage, storeMessageRelaxed } from '@ton/core';
+import { Cell, CommonMessageInfoExternalIn, CommonMessageInfoExternalOut, ExternalAddress, Message, MessageRelaxed, StateInit, beginCell, storeMessage, storeMessageRelaxed } from '@ton/core';
 import { randomAddress } from '@ton/test-utils';
 export class MsgGenerator {
     constructor(readonly wc: number){}

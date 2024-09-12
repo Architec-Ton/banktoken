@@ -1,45 +1,37 @@
-import { Blockchain, SandboxContract, TreasuryContract, printTransactionFees } from '@ton/sandbox';
-//'@ton-community/sandbox';
-import { Cell, beginCell, toNano, BitReader } from '@ton/core';
-// import { ExampleNFTCollection, RoyaltyParams } from '../wrappers/NFTExample_ExampleNFTCollection';
+import { buildOnchainMetadata } from '../utils/jetton-helpers';
+import * as BJ from '../build/BankJetton/tact_BankJetton';
 import { ArcJetton, JettonBurn } from '../build/ArcJetton/tact_ArcJetton';
-// wrappers/JettonExample_ArcJetton';
 import { ArcJettonWallet, JettonTransfer } from '../build/ArcJetton/tact_ArcJettonWallet';
-//../wrappers/JettonExample_ArcJettonWallet';
-// import '@ton-community/test-utils';
-import '@ton/test-utils';
-import { buildOnchainMetadata } from "../utils/jetton-helpers";
-import { isObject } from 'node:util';
-import { deserialize } from 'node:v8';
-import { deserializeBoc } from '@ton/core/dist/boc/cell/serialization';
-import { parseDict } from '@ton/core/dist/dict/parseDict';
-import { base64Decode } from '@ton/sandbox/dist/utils/base64';
-import { sha256 } from '@ton/crypto';
-import { BankStaking } from '../wrappers/BankStaking';
-import * as BJ /* { BankJetton, JettonBurn } */ from '../build/BankJetton/tact_BankJetton';
-import * as BJW /* { BankJettonWallet, JettonTransfer } */ from '../build/BankJetton/tact_BankJettonWallet';
 
+import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { beginCell, toNano } from '@ton/core';
+import '@ton/test-utils';
+import { parseDict } from '@ton/core/dist/dict/parseDict';
+import { sha256 } from '@ton/crypto';
 
 
 describe('ARC jetton test', () => {
     let blockchain: Blockchain;
-    let bankStaking: SandboxContract<BankStaking>;
     let owner: SandboxContract<TreasuryContract>;
     let alice: SandboxContract<TreasuryContract>;
     let jettonMaster: SandboxContract<ArcJetton>;
     let bankJetton: SandboxContract<BJ.BankJetton>;
+
+
     const jettonParams = {
         name: "ARC jetton",
         description: "This is description for ARC jetton",
         symbol: "ARC",
-        image: "https://www.com/ARCjetton.png"
+        image_data: 'a',
+        decimals: '9'
     };
-    
+
     const BNKjettonParams = {
         name: 'BNK jetton',
         description: 'This is description for BNK jetton',
         symbol: 'BNK',
-        image: 'https://www.com/BNKjetton.json',
+        image_data: '',
+        decimals: '0'
     };
 
     beforeEach(async () => {
@@ -303,7 +295,7 @@ describe('ARC jetton test', () => {
     it('get token data ', async () => {
         const getKeys = async () => {
             const metadataKeys = new Map<bigint, string>()
-            const metadata = ['name', 'description', 'symbol', 'image']
+            const metadata = ['name', 'description', 'symbol', 'image_data', 'decimals'];
 
             for (let i of metadata) {
                 const sha256View = await sha256(i)
@@ -339,55 +331,11 @@ describe('ARC jetton test', () => {
             name: deserializeHashMap.get('name'),
             description: deserializeHashMap.get('description'),
             symbol: deserializeHashMap.get('symbol'),
-            image: deserializeHashMap.get('image')
+            image_data: deserializeHashMap.get('image_data'),
+            decimals: deserializeHashMap.get('decimals')
         }
 
         expect(jettonContent).toEqual(jettonParams);
     });
 
-    it('get token data ', async () => {
-        const getKeys = async () => {
-            const metadataKeys = new Map<bigint, string>();
-            const metadata = ['name', 'description', 'symbol', 'image'];
-
-            for (let i of metadata) {
-                const sha256View = await sha256(i);
-                let b = 0n,
-                    c = 1n << 248n;
-                for (let byte of sha256View) {
-                    b += BigInt(byte) * c;
-                    c /= 256n;
-                }
-                metadataKeys.set(b, i);
-            }
-
-            return metadataKeys;
-        };
-
-        const jettondata = await jettonMaster.getGetJettonData();
-
-        let totalSupply = jettondata.total_supply;
-        let mintable = jettondata.mintable;
-        let adminAddress = jettondata.admin_address;
-        let cellJettonContent = jettondata.jetton_content;
-        let jettonWalletCode = jettondata.jetton_wallet_code;
-
-        const hasMap = parseDict(cellJettonContent.refs[0].beginParse(), 256, (src) => src);
-        const deserializeHashMap = new Map<string, string>();
-        const metadataKeys = await getKeys();
-
-        for (let [intKey, stringKey] of metadataKeys) {
-            const value = hasMap.get(intKey).loadStringTail().split('\x00')[1];
-            deserializeHashMap.set(stringKey, value);
-        }
-
-        const jettonContent = {
-            name: deserializeHashMap.get('name'),
-            description: deserializeHashMap.get('description'),
-            symbol: deserializeHashMap.get('symbol'),
-            image: deserializeHashMap.get('image'),
-        };
-
-        expect(jettonContent).toEqual(jettonParams);
-    });
 });
